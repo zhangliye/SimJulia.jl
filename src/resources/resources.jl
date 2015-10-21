@@ -43,15 +43,9 @@ type Resource <: AbstractResource
     res.env = env
     res.capacity = capacity
     res.seid = 0
-    if VERSION >= v"0.4-"
-      res.put_queue = PriorityQueue(ResourcePut, ResourceKey)
-      res.get_queue = PriorityQueue(ResourceGet, ResourceKey)
-      res.users = PriorityQueue(Process, ResourceKey, Order.Reverse)
-    else
-      res.put_queue = PriorityQueue{ResourcePut, ResourceKey}()
-      res.get_queue = PriorityQueue{ResourceGet, ResourceKey}()
-      res.users = PriorityQueue{Process, ResourceKey}(Order.Reverse)
-    end
+    res.put_queue = PriorityQueue(ResourcePut, ResourceKey)
+    res.get_queue = PriorityQueue(ResourceGet, ResourceKey)
+    res.users = PriorityQueue(Process, ResourceKey, Order.Reverse)
     return res
   end
 end

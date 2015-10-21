@@ -1,6 +1,5 @@
 using SimJulia
 using Distributions
-using Compat
 
 
 const RANDOM_SEED = 158
@@ -19,10 +18,10 @@ type Theater
     theater = new()
     theater.movies = ASCIIString["Julia Unchained", "Kill Process", "Pulp Implementation"]
     theater.counter = Resource(env, 1)
-    theater.available = @compat Dict("Julia Unchained" => TICKETS, "Kill Process" => TICKETS, "Pulp Implementation" => TICKETS)
-    theater.sold_out = @compat Dict("Julia Unchained" => Event(env), "Kill Process" => Event(env), "Pulp Implementation" => Event(env))
-    theater.when_sold_out = @compat Dict("Julia Unchained" => typemax(Float64), "Kill Process" => typemax(Float64), "Pulp Implementation" => typemax(Float64))
-    theater.num_renegers = @compat Dict("Julia Unchained" => 0, "Kill Process" => 0, "Pulp Implementation" => 0)
+    theater.available = Dict("Julia Unchained" => TICKETS, "Kill Process" => TICKETS, "Pulp Implementation" => TICKETS)
+    theater.sold_out = Dict("Julia Unchained" => Event(env), "Kill Process" => Event(env), "Pulp Implementation" => Event(env))
+    theater.when_sold_out = Dict("Julia Unchained" => typemax(Float64), "Kill Process" => typemax(Float64), "Pulp Implementation" => typemax(Float64))
+    theater.num_renegers = Dict("Julia Unchained" => 0, "Kill Process" => 0, "Pulp Implementation" => 0)
     return theater
   end
 end

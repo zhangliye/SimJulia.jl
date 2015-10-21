@@ -1,22 +1,16 @@
-using Compat
-
 type Environment <: AbstractEnvironment
   time :: Float64
   sched :: PriorityQueue{BaseEvent, EventKey}
   eid :: Int
   seid :: Int
-  active_proc :: @compat Nullable{Process}
+  active_proc :: Nullable{Process}
   function Environment(initial_time::Float64=0.0)
     env = new()
     env.time = initial_time
-    if VERSION >= v"0.4-"
-      env.sched = PriorityQueue(BaseEvent, EventKey)
-    else
-      env.sched = PriorityQueue{BaseEvent, EventKey}()
-    end
+    env.sched = PriorityQueue(BaseEvent, EventKey)
     env.eid = 0
     env.seid = 0
-    env.active_proc = @compat Nullable{Process}()
+    env.active_proc = Nullable{Process}()
     return env
   end
 end
@@ -52,5 +46,5 @@ function peek(env::Environment)
 end
 
 function active_process(env::Environment)
-  return @compat get(env.active_proc)
+  return get(env.active_proc)
 end

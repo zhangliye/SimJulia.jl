@@ -3,9 +3,7 @@ module SimJulia
   using Base.Collections
 
   import Base.show, Base.isless, Base.yield, Base.run, Base.count, Base.isless
-  if VERSION >= v"0.4-"
-    import Base.now, Base.step, Base.&, Base.|
-  end
+  import Base.now, Base.step, Base.&, Base.|
   import Base.Collections.peek
 
   export AbstractEvent, run, succeed, fail, trigger, triggered, processed, value, append_callback, stop_simulation

@@ -46,13 +46,8 @@ type Container{T<:Number} <: AbstractResource
     cont.capacity = capacity
     cont.level = level
     cont.seid = 0
-    if VERSION >= v"0.4-"
-      cont.put_queue = PriorityQueue(ContainerPut{T}, ContainerKey)
-      cont.get_queue = PriorityQueue(ContainerGet{T}, ContainerKey)
-    else
-      cont.put_queue = PriorityQueue{ContainerPut{T}, ContainerKey}()
-      cont.get_queue = PriorityQueue{ContainerGet{T}, ContainerKey}()
-    end
+    cont.put_queue = PriorityQueue(ContainerPut{T}, ContainerKey)
+    cont.get_queue = PriorityQueue(ContainerGet{T}, ContainerKey)
     return cont
   end
 end

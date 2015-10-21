@@ -46,13 +46,8 @@ type Store{T} <: AbstractResource
     sto.capacity = capacity
     sto.items = Set{T}()
     sto.seid = 0
-    if VERSION >= v"0.4-"
-      sto.put_queue = PriorityQueue(StorePut{T}, StoreKey)
-      sto.get_queue = PriorityQueue(StoreGet, StoreKey)
-    else
-      sto.put_queue = PriorityQueue{StorePut{T}, StoreKey}()
-      sto.get_queue = PriorityQueue{StoreGet, StoreKey}()
-    end
+    sto.put_queue = PriorityQueue(StorePut{T}, StoreKey)
+    sto.get_queue = PriorityQueue(StoreGet, StoreKey)
     return sto
   end
 end

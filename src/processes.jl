@@ -1,5 +1,3 @@
-using Compat
-
 type Initialize <: AbstractEvent
   bev :: BaseEvent
   function Initialize(env::AbstractEnvironment, callback)
@@ -89,14 +87,14 @@ end
 
 function execute(env::AbstractEnvironment, ev::AbstractEvent, proc::Process)
   try
-    env.active_proc = @compat Nullable(proc)
+    env.active_proc = Nullable(proc)
     value = consume(proc.task, ev.bev.value)
-    env.active_proc = @compat Nullable{Process}()
+    env.active_proc = Nullable{Process}()
     if istaskdone(proc.task)
       schedule(proc, value)
     end
   catch exc
-    env.active_proc = @compat Nullable{Process}()
+    env.active_proc = Nullable{Process}()
     if !isempty(proc.bev.callbacks)
       schedule(proc, exc)
     else
