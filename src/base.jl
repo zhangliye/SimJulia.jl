@@ -18,7 +18,7 @@ type EventProcessed <: Exception end
 type EventKey
   time :: Float64
   priority :: Bool
-  id :: Float64
+  id :: Int
   ev :: AbstractEvent
 end
 
