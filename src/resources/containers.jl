@@ -1,6 +1,6 @@
 type ContainerKey <: AbstractResourceKey
   priority :: Int
-  id :: Int
+  id :: UInt
 end
 
 type ContainerPut{T<:Number} <: PutEvent
@@ -37,7 +37,7 @@ type Container{T<:Number} <: AbstractResource
   env :: Environment
   level :: T
   capacity :: T
-  seid :: Int
+  seid :: UInt
   put_queue :: PriorityQueue{ContainerPut{T}, ContainerKey}
   get_queue :: PriorityQueue{ContainerGet{T}, ContainerKey}
   function Container(env::Environment, capacity::T=typemax(T), level::T=zero(T))

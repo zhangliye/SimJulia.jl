@@ -1,8 +1,8 @@
 type Environment <: AbstractEnvironment
   time :: Float64
   sched :: PriorityQueue{BaseEvent, EventKey}
-  eid :: Int
-  seid :: Int
+  eid :: UInt
+  seid :: UInt
   active_proc :: Nullable{Process}
   function Environment(initial_time::Float64=0.0)
     env = new()

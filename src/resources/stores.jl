@@ -1,6 +1,6 @@
 type StoreKey <: AbstractResourceKey
   priority :: Int
-  id :: Float64
+  id :: UInt
 end
 
 type StorePut{T} <: PutEvent
@@ -37,7 +37,7 @@ type Store{T} <: AbstractResource
   env :: Environment
   capacity :: Int
   items :: Set{T}
-  seid :: Int
+  seid :: UInt
   put_queue :: PriorityQueue{StorePut{T}, StoreKey}
   get_queue :: PriorityQueue{StoreGet, StoreKey}
   function Store(env::Environment, capacity::Int=typemax(Int))

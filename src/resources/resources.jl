@@ -1,6 +1,6 @@
 type ResourceKey <: AbstractResourceKey
   priority :: Int
-  id :: Int
+  id :: UInt
   preempt :: Bool
   since :: Float64
 end
@@ -34,7 +34,7 @@ end
 type Resource <: AbstractResource
   env :: AbstractEnvironment
   capacity :: Int
-  seid :: Int
+  seid :: UInt
   put_queue :: PriorityQueue{ResourcePut, ResourceKey}
   get_queue :: PriorityQueue{ResourceGet, ResourceKey}
   users :: PriorityQueue{Process, ResourceKey}

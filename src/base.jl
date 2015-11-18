@@ -1,5 +1,3 @@
-using Compat
-
 const EVENT_INITIAL = 0
 const EVENT_TRIGGERED = 1
 const EVENT_PROCESSING = 2
@@ -18,15 +16,15 @@ type EventProcessed <: Exception end
 type EventKey
   time :: Float64
   priority :: Bool
-  id :: Int
+  id :: UInt
   ev :: AbstractEvent
 end
 
 type BaseEvent
   env :: AbstractEnvironment
   callbacks :: Set{Function}
-  state :: @compat UInt16
-  id :: Int
+  state :: UInt8
+  id :: UInt
   value :: Any
   function BaseEvent(env::AbstractEnvironment)
     ev = new()
