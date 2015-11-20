@@ -21,12 +21,12 @@ The process function can suspend its execution by yielding an :class:`AbstractEv
 A :class:`Process` itself is an event, too. It is triggered, once the process functions returns or raises an exception. The value of the process is the return value of the process function or the exception, respectively.
 """
 type Process <: AbstractEvent
-  name :: ASCIIString
+  name :: AbstractString
   task :: Task
   target :: AbstractEvent
   bev :: BaseEvent
   resume :: Function
-  function Process(env::AbstractEnvironment, name::ASCIIString, func::Function, args...)
+  function Process(env::AbstractEnvironment, name::AbstractString, func::Function, args...)
     proc = new()
     proc.name = name
     proc.task = Task(()->func(env, args...))
