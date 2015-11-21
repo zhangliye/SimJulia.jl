@@ -47,9 +47,9 @@ type Variable <: AbstractVariable
       push!(cont.rev_deps[deps[i]], var)
     end
     var.order = order
+    df = ""
     if order > 1
       ∇f = differentiate(f, deps)
-      df = ""
       for i in 1:n
         args *= ",d"*deps[i]
         df *= "$(∇f[i])*"*"d"*deps[i]

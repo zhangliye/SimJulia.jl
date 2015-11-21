@@ -7,7 +7,6 @@ SimJulia
 [![Coverage Status](https://coveralls.io/repos/BenLauwens/SimJulia.jl/badge.svg?branch=continuous&service=github)](https://coveralls.io/github/BenLauwens/SimJulia.jl?branch=continuous)
 [![codecov.io](http://codecov.io/github/BenLauwens/SimJulia.jl/coverage.svg?branch=continuous)](http://codecov.io/github/BenLauwens/SimJulia.jl?branch=continuous)
 
-[![SimJulia](http://pkg.julialang.org/badges/SimJulia_0.3.svg)](http://pkg.julialang.org/?pkg=SimJulia&ver=0.3)
 [![SimJulia](http://pkg.julialang.org/badges/SimJulia_0.4.svg)](http://pkg.julialang.org/?pkg=SimJulia&ver=0.4)
 
 [![Documentation Status](https://readthedocs.org/projects/simjuliajl/badge/?version=latest)](https://readthedocs.org/projects/simjuliajl/?badge=latest)
