@@ -1,4 +1,5 @@
 using Calculus
+using Polynomials
 
 abstract AbstractVariable
 
