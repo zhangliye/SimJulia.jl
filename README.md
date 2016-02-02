@@ -23,7 +23,7 @@ Release Notes
 * v0.4 introduces the continuous time simulation based on a high performance *quantized state system* (QSS) solver.
 * The API for continuous time simulation is inspired by DISCO.
 * Julia v0.4 and v0.5 compatible.
-* Documentation included
+* Documentation included:
   * All combined continuous time/discrete event examples of DISCO are implemented.
   * 10 min tutorial and topical guides are updated.
   * API is also completed.
