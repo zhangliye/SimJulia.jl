@@ -11,7 +11,7 @@ end
 
 type Step <: AbstractEvent
   bev :: BaseEvent
-  function Step(env::AbstractEnvironment, delay::Float64, var::AbstractVariable)
+  function Step(env::AbstractEnvironment, var::AbstractVariable, delay::Float64=0.0)
     step = new()
     step.bev = BaseEvent(env)
     push!(step.bev.callbacks, (ev) -> integrate(ev, var))
@@ -65,7 +65,7 @@ type Variable <: AbstractVariable
   derivs :: Vector{Function}
   deps :: Vector{AbstractString}
   ev :: Step
-  function Variable(cont::Continuous, name::AbstractString, delay::Float64, x₀::Float64, f::AbstractString, deps...)
+  function Variable(cont::Continuous, name::AbstractString, x₀::Float64, f::AbstractString, deps...)
     var = new()
     var.cont = cont
     cont.vars[name] = var
@@ -81,7 +81,7 @@ type Variable <: AbstractVariable
       end
       push!(cont.rev_deps[deps[i]], var)
     end
-    var.ev = Step(cont.env, delay, var)
+    var.ev = Step(cont.env, var)
     return var
   end
 end
