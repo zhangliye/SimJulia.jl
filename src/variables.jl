@@ -5,7 +5,14 @@ import Calculus.integrate
 
 abstract AbstractVariable
 
-function integrate(ev::AbstractEvent, var::AbstractVariable)
+function integrate(env::AbstractEnvironment, ev::AbstractEvent, var::AbstractVariable)
+  t = now(env)
+  Δ = t - var.tx
+  for i = 1:var.cont.order
+    for j = i+1:var.cont.order
+      var.x[i] += var.x[j]*Δ^(j-i)/factorial(j-i)
+    end
+  end
 
 end
 
@@ -14,7 +21,7 @@ type Step <: AbstractEvent
   function Step(env::AbstractEnvironment, var::AbstractVariable, delay::Float64=0.0)
     step = new()
     step.bev = BaseEvent(env)
-    push!(step.bev.callbacks, (ev) -> integrate(ev, var))
+    push!(step.bev.callbacks, (ev) -> integrate(env, ev, var))
     schedule(step, delay, var)
     return step
   end
@@ -62,6 +69,8 @@ type Variable <: AbstractVariable
   name :: AbstractString
   x :: Vector{Float64}
   q :: Vector{Float64}
+  tx :: Float64
+  tq :: Float64
   derivs :: Vector{Function}
   deps :: Vector{AbstractString}
   ev :: Step
