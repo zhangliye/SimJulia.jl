@@ -2,11 +2,7 @@ language: julia
 os:
     - linux
     - osx
-julia:
-<<<<<<< HEAD
-=======
-    - 0.3
->>>>>>> master
+julia:s
     - 0.4
     - nightly
 notifications:

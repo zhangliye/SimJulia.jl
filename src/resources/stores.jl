@@ -64,11 +64,6 @@ function get_any_item{T}(item::T)
   return true
 end
 
-<<<<<<< HEAD
-#function Get{T}(sto::Store{T}, filter::Function=(item::T)->true, priority::Int=0)
-
-=======
->>>>>>> master
 function Get{T}(sto::Store{T}, filter::Function=get_any_item, priority::Int=0)
   get = StoreGet(sto, filter)
   sto.get_queue[get] = StoreKey(priority, sto.seid+=1)
