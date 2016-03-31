@@ -1,3 +1,7 @@
 docs/build
 *.cov
 .DS_Store
+
+.travis.yml
+
+src/resources/stores.jl
