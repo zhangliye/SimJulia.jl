@@ -1,3 +1,5 @@
+__precompile__()
+
 module SimJulia
   using Base.Order
   using Base.Collections
