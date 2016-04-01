@@ -15,7 +15,6 @@ type Environment <: AbstractEnvironment
   end
 end
 
-
 function now(env::Environment)
   return env.time
 end

@@ -12,7 +12,7 @@ module SimJulia
   export Event, Timeout, EventOperator, AllOf, AnyOf, (&), (|)
   export Process, Interrupt, yield, is_process_done, cause
   export Environment, step, peek, now, active_process
-  export Variable, Continuous
+  export Continuous
   export DelayedProcess
   export Resource, Preempted, Get, Put, Request, Release, cancel, by, usage_since, capacity, count
   export Container, level
