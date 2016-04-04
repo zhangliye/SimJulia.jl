@@ -5,13 +5,16 @@ abstract AbstractQuantizer
 
 type Variable
   name :: UTF8String
+  x :: Vector{Float64}
   ev :: Step
   tx :: Float64
   tq :: Float64
   derivatives :: Vector{Function}
-  function Variable(name::AbstractString)
+  function Variable(name::AbstractString, t::Float64)
     var = new()
-
+    var.name = name()
+    var.tx = t
+    var.tq = t
     return var
   end
 end
@@ -30,11 +33,16 @@ type Continuous
   function Continuous(quant::AbstractQuantizer, vars::AbstractString...)
     cont = new()
     cont.quant = quant
+    for var in vars
+
+    end
+    cont.q = zeros(Float64, length(vars), quant.order)
+    return cont
   end
 end
 
 function initialize(env::AbstractEnvironment, ev::Start, cont::Continuous)
-  
+
 end
 
 type Start <: AbstractEvent
@@ -42,7 +50,7 @@ type Start <: AbstractEvent
   function Step(env::AbstractEnvironment, cont::Continuous, delay::Float64=0.0)
     step = new()
     step.bev = BaseEvent(env)
-    push!(step.bev.callbacks, (ev) -> integrate(env, ev, cont, var))
+    push!(step.bev.callbacks, (ev) -> initialize(env, ev, cont))
     schedule(step, delay)
     return step
   end
