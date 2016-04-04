@@ -6,7 +6,7 @@ abstract AbstractQuantizer
 type Variable
   name :: UTF8String
   x :: Vector{Float64}
-  ev :: Step
+  ev :: AbstractEvent
   tx :: Float64
   tq :: Float64
   derivatives :: Vector{Function}
