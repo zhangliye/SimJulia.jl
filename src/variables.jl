@@ -41,10 +41,6 @@ type Continuous
   end
 end
 
-function initialize(env::AbstractEnvironment, ev::Start, cont::Continuous)
-
-end
-
 type Start <: AbstractEvent
   bev :: BaseEvent
   function Step(env::AbstractEnvironment, cont::Continuous, delay::Float64=0.0)
@@ -56,8 +52,7 @@ type Start <: AbstractEvent
   end
 end
 
-function integrate(env::AbstractEnvironment, ev::Step, cont::Continuous, var::Variable)
-  t = now(env)
+function initialize(env::AbstractEnvironment, ev::Start, cont::Continuous)
 
 end
 
@@ -70,4 +65,9 @@ type Step <: AbstractEvent
     schedule(step, delay)
     return step
   end
+end
+
+function integrate(env::AbstractEnvironment, ev::Step, cont::Continuous, var::Variable)
+  t = now(env)
+
 end
