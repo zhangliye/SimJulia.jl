@@ -12,7 +12,7 @@ module SimJulia
   export Event, Timeout, EventOperator, AllOf, AnyOf, (&), (|)
   export Process, Interrupt, yield, is_process_done, cause
   export Environment, step, peek, now, active_process
-  export Continuous
+  export Continuous, Variable
   export DelayedProcess
   export Resource, Preempted, Get, Put, Request, Release, cancel, by, usage_since, capacity, count
   export Container, level
@@ -24,6 +24,10 @@ module SimJulia
   include("environments.jl")
   include("variables.jl")
   include("util.jl")
+  include("continuous/base.jl")
+  include("continuous/model.jl")
+  include("continuous/explicit_quantizer.jl")
+  include("continuous/QSSintegrator.jl")
   include("resources/base.jl")
   include("resources/resources.jl")
   include("resources/containers.jl")

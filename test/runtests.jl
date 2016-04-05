@@ -7,7 +7,9 @@ for test_file in [
   "test_variables.jl",
   "test_resources.jl",
   "test_containers.jl",
-  "test_stores.jl"]
+  "test_stores.jl",
+  "test_continuous.jl",
+  ]
   include(testpath(test_file))
 end
 
