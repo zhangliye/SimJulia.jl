@@ -1,6 +1,7 @@
 using Polynomials
 
-type Variable <: AbstractEvent
+type Variable <: AbstractVariable
+  id :: Int
   bev :: BaseEvent
   f :: AbstractString
   Δabs :: Float64
@@ -17,26 +18,44 @@ type Variable <: AbstractEvent
   end
 end
 
-type Continuous
+type Continuous{I<:AbstractIntegrator} <: AbstractEvent
   env :: AbstractEnvironment
-  n : Int
-  vars :: Dict{UTF8String, Variable}
-  params :: Dict{UTF8String, Float64}
-  integrator :: AbstractIntegrator
-  function Continuous(env::AbstractEnvironment, names::AbstractString...)
+  bev :: BaseEvent
+  names :: Dict{UTF8String, Int}
+  vars :: Vector{AbstractVariable}
+  integrator :: I
+  function Continuous(env::AbstractEnvironment, names::AbstractString...; args...)
     cont = new()
-      cont.env = env
-      cont.n = length(names)
+    cont.env = env
+    cont.names = Dict{UTF8String, Int}()
+    for i = 1:length(names)
+      cont.names[names[i]] = i
+    end
+    cont.vars = Array(AbstractVariable, length(names))
+    cont.integrator = I(cont; args...)
+    cont.bev = BaseEvent(env)
+    push!(cont.bev.callbacks, (ev)->initialize(ev::AbstractEvent, cont::Continuous))
+    schedule(cont, true)
     return cont
   end
 end
 
-function initialize(ev::AbstractEvent, cont::Continuous)
-
+function Continuous{I<:AbstractIntegrator} (::Type{I}, env::AbstractEnvironment, names::AbstractString...; args...)
+  cont = Continuous{I}(env, names...; args...)
+  return cont
 end
 
-function integrate(ev::AbstractEvent, cont::Continuous, var::Variable)
+function initialize(ev::AbstractEvent, cont::Continuous)
+  println("Initialize")
+end
+
+function step(ev::AbstractEvent, cont::Continuous, var::Variable)
+  t = integrate()
+end
 
 function setindex!(cont::Continuous, var::Variable, name::AbstractString)
+  i = cont.names[name]
+  cont.vars[i] = var
+  var.id = i
 
 end
