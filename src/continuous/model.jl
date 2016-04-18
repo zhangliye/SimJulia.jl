@@ -34,7 +34,7 @@ type Continuous{I<:AbstractIntegrator} <: AbstractEvent
     cont.vars = Array(AbstractVariable, length(names))
     cont.integrator = I(cont; args...)
     cont.bev = BaseEvent(env)
-    push!(cont.bev.callbacks, (ev)->initialize(ev::AbstractEvent, cont::Continuous))
+    push!(cont.bev.callbacks, initialize)
     schedule(cont, true)
     return cont
   end
@@ -45,17 +45,22 @@ function Continuous{I<:AbstractIntegrator} (::Type{I}, env::AbstractEnvironment,
   return cont
 end
 
-function initialize(ev::AbstractEvent, cont::Continuous)
-  println("Initialize")
+function initialize(cont::Continuous)
+  println("initialize")
+  for var in cont.vars
+    var.bev = BaseEvent(cont.bev.env)
+    push!(var.bev.callbacks, (var::Variable)->step(var, cont))
+    schedule(var)
+  end
 end
 
-function step(ev::AbstractEvent, cont::Continuous, var::Variable)
-  t = integrate()
+function step(var::Variable, cont::Continuous, )
+  println("step $(var.id)")
+  #t = integrate()
 end
 
 function setindex!(cont::Continuous, var::Variable, name::AbstractString)
   i = cont.names[name]
   cont.vars[i] = var
   var.id = i
-
 end
