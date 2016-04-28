@@ -1,13 +1,14 @@
 using Polynomials
 
-type Variable <: AbstractVariable
+type Variable <: AbstractEvent
   id :: Int
+  name :: UTF8String
   bev :: BaseEvent
-  f :: AbstractString
+  f :: UTF8String
   Δabs :: Float64
   Δrel :: Float64
   x :: Poly
-  tx :: Float64
+  previous :: Float64
   function Variable(f::AbstractString, x0::Float64, Δabs::Float64=1e-6, Δrel::Float64=1e-6)
     var = new()
     var.f = f
@@ -18,49 +19,50 @@ type Variable <: AbstractVariable
   end
 end
 
-type Continuous{I<:AbstractIntegrator} <: AbstractEvent
-  env :: AbstractEnvironment
-  bev :: BaseEvent
+type Continuous{I<:AbstractIntegrator}
   names :: Dict{UTF8String, Int}
-  vars :: Vector{AbstractVariable}
+  vars :: Vector{Variable}
   integrator :: I
-  function Continuous(env::AbstractEnvironment, names::AbstractString...; args...)
+  function Continuous(names::AbstractString...; args...)
     cont = new()
-    cont.env = env
     cont.names = Dict{UTF8String, Int}()
     for i = 1:length(names)
       cont.names[names[i]] = i
     end
-    cont.vars = Array(AbstractVariable, length(names))
+    cont.vars = Array(Variable, length(names))
     cont.integrator = I(cont; args...)
-    cont.bev = BaseEvent(env)
-    push!(cont.bev.callbacks, initialize)
-    schedule(cont, true)
     return cont
   end
 end
 
 function Continuous{I<:AbstractIntegrator} (::Type{I}, env::AbstractEnvironment, names::AbstractString...; args...)
-  cont = Continuous{I}(env, names...; args...)
+  cont = Continuous{I}(names...; args...)
+  ev = Event(env)
+  append_callback(ev, initialize, env, cont)
+  schedule(ev, true)
   return cont
 end
 
-function initialize(cont::Continuous)
+function initialize(ev::AbstractEvent, env::AbstractEnvironment, cont::Continuous)
   println("initialize")
-  for var in cont.vars
-    var.bev = BaseEvent(cont.bev.env)
-    push!(var.bev.callbacks, (var::Variable)->step(var, cont))
+  initialize(cont.integrator)
+  for (index, var) in enumerate(cont.vars)
+    var.bev = BaseEvent(env)
+    append_callback(var, step, cont)
     schedule(var)
   end
 end
 
-function step(var::Variable, cont::Continuous, )
+function step(var::Variable, cont::Continuous)
   println("step $(var.id)")
-  #t = integrate()
+  var.bev = BaseEvent(var.bev.env)
+  append_callback(var, step, cont)
+  integrate()
 end
 
 function setindex!(cont::Continuous, var::Variable, name::AbstractString)
   i = cont.names[name]
   cont.vars[i] = var
   var.id = i
+  var.name = name
 end
