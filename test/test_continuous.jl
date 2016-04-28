@@ -1,7 +1,9 @@
 using SimJulia
 
 env = Environment()
-cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, "x₁", "x₂"; order=3)
-cont["x₁"] = Variable("x₁*x₂", 0.0)
-cont["x₂"] = Variable("x₁+x₂^2", 1.0)
-run(env, 5.0)
+cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, "x₁", "x₂", "x₃"; order=1)
+cont["x₁"] = Variable("0.1x₁+0.01x₁*x₂-0.01x₁^2", 10.0, 0.001)
+cont["x₂"] = Variable("-0.4x₂+0.5x₁*x₂", 10.0, 0.001)
+cont["x₃"] = Variable("x₁/x₃", 10.0, 0.001)
+run(env, 300.0)
+println(cont.deps)

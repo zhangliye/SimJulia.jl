@@ -17,13 +17,12 @@ end
 function initialize(ev::AbstractEvent, env::AbstractEnvironment, integrator::QSSIntegrator)
   println("initialize")
   add_derivatives(integrator)
+  check_dependencies(integrator.cont)
   for (index, var) in enumerate(integrator.cont.vars)
     var.t = now(env)
     integrator.quantizer.q[index, 1] = var.x[1]
     var.x = zeros(Float64, integrator.quantizer.order+1)
     var.x[1] = integrator.quantizer.q[index, 1]
-  end
-  for (index, var) in enumerate(integrator.cont.vars)
     var.bev = BaseEvent(env)
     append_callback(var, step, env, integrator)
     schedule(var)
@@ -64,10 +63,13 @@ function add_derivatives(integrator::QSSIntegrator)
 end
 
 function step(var::Variable, env::Environment, integrator::QSSIntegrator)
-  println("step $(var.id)")
+  println("step of variable $(var.name) at time $(now(env))")
   var.bev = BaseEvent(env)
   append_callback(var, step, env, integrator)
   Δt = now(env) - var.t
-
+  advance_time(var, Δt)
   var.t = now(env)
+  update_quantized_state(integrator.quantizer, var.index, var.t, var.x)
+  Δq = max(var.Δrel*var.x[1], var.Δabs)
+  schedule(var, compute_next_time(integrator.quantizer, Δq, var.x))
 end

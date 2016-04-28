@@ -10,3 +10,12 @@ type ExplicitQuantizer <: AbstractQuantizer
     return quantizer
   end
 end
+
+function update_quantized_state(quantizer::ExplicitQuantizer, index::Int, t::Float64, x::Vector{Float64})
+  quantizer.t[index] = t
+  quantizer.q[index,:] = x[1:quantizer.order]
+end
+
+function compute_next_time(quantizer::ExplicitQuantizer, Δq::Float64, x::Vector{Float64})
+  (factorial(quantizer.order)*Δq/x[end])^(1/quantizer.order)
+end
