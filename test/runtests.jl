@@ -4,7 +4,6 @@ for test_file in [
   "test_events.jl",
   "test_processes.jl",
   "test_event_operators.jl",
-  "test_variables.jl",
   "test_resources.jl",
   "test_containers.jl",
   "test_stores.jl",

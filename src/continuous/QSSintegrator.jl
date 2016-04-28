@@ -14,15 +14,27 @@ type QSSIntegrator{Q<:AbstractQuantizer} <: AbstractIntegrator
   end
 end
 
-function initialize(integrator::QSSIntegrator)
+function initialize(ev::AbstractEvent, env::AbstractEnvironment, integrator::QSSIntegrator)
+  println("initialize")
   add_derivatives(integrator)
+  for (index, var) in enumerate(integrator.cont.vars)
+    var.t = now(env)
+    integrator.quantizer.q[index, 1] = var.x[1]
+    var.x = zeros(Float64, integrator.quantizer.order+1)
+    var.x[1] = integrator.quantizer.q[index, 1]
+  end
+  for (index, var) in enumerate(integrator.cont.vars)
+    var.bev = BaseEvent(env)
+    append_callback(var, step, env, integrator)
+    schedule(var)
+  end
 end
 
 function add_derivatives(integrator::QSSIntegrator)
   n = length(integrator.cont.names)
   names = Array(UTF8String, n)
-  for name in keys(integrator.cont.names)
-    names[integrator.cont.names[name]] = name
+  for (index, var) in enumerate(integrator.cont.vars)
+    names[index] = var.name
   end
   args = UTF8String["t", names...]
   for (index, var) in enumerate(integrator.cont.vars)
@@ -51,6 +63,11 @@ function add_derivatives(integrator::QSSIntegrator)
   end
 end
 
-function integrate()
+function step(var::Variable, env::Environment, integrator::QSSIntegrator)
+  println("step $(var.id)")
+  var.bev = BaseEvent(env)
+  append_callback(var, step, env, integrator)
+  Δt = now(env) - var.t
 
+  var.t = now(env)
 end

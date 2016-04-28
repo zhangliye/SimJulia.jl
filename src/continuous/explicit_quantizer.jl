@@ -4,7 +4,7 @@ type ExplicitQuantizer <: AbstractQuantizer
   order :: Int
   function ExplicitQuantizer(n::Int, order::Int)
     quantizer = new()
-    quantizer.q = Array(Float64, n, order)
+    quantizer.q = zeros(Float64, n, order)
     quantizer.t = zeros(Float64, n)
     quantizer.order = order
     return quantizer
