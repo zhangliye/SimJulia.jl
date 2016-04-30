@@ -42,7 +42,7 @@ type Continuous
   end
 end
 
-function Continuous{I<:AbstractIntegrator} (::Type{I}, env::AbstractEnvironment, names::AbstractString...; args...)
+function Continuous{I<:AbstractIntegrator}(::Type{I}, env::AbstractEnvironment, names::AbstractString...; args...)
   cont = Continuous(names...; args...)
   integrator = I(cont; args...)
   ev = Event(env)
