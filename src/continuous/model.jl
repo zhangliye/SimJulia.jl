@@ -1,15 +1,26 @@
-type Variable <: AbstractEvent
+type Parameter
   index :: Int
-  name :: UTF8String
+  symbol :: Symbol
+  value :: Float64
+  function Parameter(x₀::Float64)
+    param = new()
+    param.value = x₀
+    return param
+  end
+end
+
+type Variable <: AbstractEvent
   bev :: BaseEvent
-  f :: UTF8String
+  index :: Int
+  symbol :: Symbol
+  ex :: Expr
   Δabs :: Float64
   Δrel :: Float64
   x :: Vector{Float64}
   t :: Float64
   function Variable(f::AbstractString, x₀::Float64, Δabs::Float64, Δrel::Float64)
     var = new()
-    var.f = f
+    var.ex = parse(f)
     var.x = [x₀]
     var.Δabs = Δabs
     var.Δrel = Δrel
@@ -26,24 +37,32 @@ function Variable(f::AbstractString, x₀::Float64)
 end
 
 type Continuous
-  names :: Dict{UTF8String, Int}
+  symbols :: Dict{Symbol, Int}
   vars :: Vector{Variable}
+  params :: Vector{Parameter}
+  p :: Vector{Float64}
   deps :: Matrix{Bool}
-  function Continuous(names::AbstractString...; args...)
-    n = length(names)
+  function Continuous(vars::Vector, params::Vector)
+    n = length(vars)
+    m = length(params)
     cont = new()
-    cont.names = Dict{UTF8String, Int}()
-    for i = 1:n
-      cont.names[names[i]] = i
+    cont.symbols = Dict{Symbol, Int}()
+    for i in 1:n
+      cont.symbols[Symbol(vars[i])] = i
+    end
+    for i in 1:m
+      cont.symbols[Symbol(params[i])] = i + n
     end
     cont.vars = Array(Variable, n)
-    cont.deps = zeros(Bool, n, n)
+    cont.params = Array(Parameter, m)
+    cont.p = zeros(Float64, m)
+    cont.deps = zeros(Bool, n, n+m)
     return cont
   end
 end
 
-function Continuous{I<:AbstractIntegrator}(::Type{I}, env::AbstractEnvironment, names::AbstractString...; args...)
-  cont = Continuous(names...; args...)
+function Continuous{I<:AbstractIntegrator}(::Type{I}, env::AbstractEnvironment, vars::Vector, params::Vector=[]; args...)
+  cont = Continuous(vars, params)
   integrator = I(cont; args...)
   ev = Event(env)
   append_callback(ev, initialize, env, integrator)
@@ -51,42 +70,49 @@ function Continuous{I<:AbstractIntegrator}(::Type{I}, env::AbstractEnvironment, 
   return cont
 end
 
+function setindex!(cont::Continuous, param::Parameter, name::AbstractString)
+  n = length(cont.vars)
+  symbol = Symbol(name)
+  i = cont.symbols[symbol]
+  cont.params[i-n] = param
+  param.index = i
+  param.symbol = symbol
+  cont.p[i-n] = param.value
+end
+
 function setindex!(cont::Continuous, var::Variable, name::AbstractString)
-  i = cont.names[name]
+  symbol = Symbol(name)
+  i = cont.symbols[symbol]
   cont.vars[i] = var
   var.index = i
-  var.name = name
+  var.symbol = symbol
 end
 
 function check_dependencies(cont::Continuous)
-  syms = Dict{Symbol, UTF8String}()
-  for name in keys(cont.names)
-    syms[Symbol(name)] = name
-  end
+  n = length(cont.vars)
+  symbols = Set{Symbol}(keys(cont.symbols))
   for (index, var) in enumerate(cont.vars)
-    deps = Set{UTF8String}()
-    process_expr(parse(var.f), syms, deps)
-    for name in deps
-      cont.deps[index, cont.names[name]] = true
+    deps = Set{Symbol}()
+    process_expr(var.ex, deps)
+    for symbol in intersect(deps, symbols)
+      cont.deps[index, cont.symbols[symbol]] = true
     end
   end
 end
 
-function process_expr(ex::Expr, syms::Dict{Symbol, UTF8String}, deps::Set{UTF8String})
+function process_expr(ex::Expr, deps::Set{Symbol})
   if ex.head == :call
     for ex_arg in ex.args[2:end]
-      process_expr(ex_arg, syms, deps)
+      process_expr(ex_arg, deps)
     end
   end
 end
 
-function process_expr(sym::Symbol, syms::Dict{Symbol, UTF8String}, deps::Set{UTF8String})
-  if sym in keys(syms)
-    push!(deps, syms[sym])
-  end
+function process_expr(symbol::Symbol, deps::Set{Symbol})
+  push!(deps, symbol)
 end
 
-function process_expr(sym::Any, syms::Dict{Symbol, UTF8String}, deps::Set{UTF8String})
+function process_expr(::Any, ::Set{Symbol})
 
 end
 

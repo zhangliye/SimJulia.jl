@@ -30,40 +30,44 @@ function initialize(ev::AbstractEvent, env::AbstractEnvironment, integrator::QSS
 end
 
 function add_derivatives(integrator::QSSIntegrator)
-  n = length(integrator.cont.names)
-  names = Array(UTF8String, n)
+  n = length(integrator.cont.vars)
+  m = length(integrator.cont.params)
+  vars = Array(Symbol, n)
   for (index, var) in enumerate(integrator.cont.vars)
-    names[index] = var.name
+    vars[index] = var.symbol
   end
-  args = UTF8String["t", names...]
+  params = Array(Symbol, m)
+  for (index, param) in enumerate(integrator.cont.params)
+    params[index] = param.symbol
+  end
+  args = Symbol[:t, vars...]
   for (index, var) in enumerate(integrator.cont.vars)
-    integrator.derivatives[index, 1] = eval(parse("($(reduce((a,b)->"$a,$b",args)))->$(var.f)"))
+    integrator.derivatives[index, 1] = eval(:(($(args...), $(params...))->$(var.ex)))
   end
   if integrator.quantizer.order > 1
-    fun = Array(UTF8String, n)
+    fun = Array(Expr, n)
     for (index, var) in enumerate(integrator.cont.vars)
-      fun[index] = var.f
+      fun[index] = var.ex
     end
     for order = 2:integrator.quantizer.order
       prev_args = copy(args)
       for i = 1:n
-        push!(args, "d$(order-1)_$(names[i])")
+        push!(args, symbol("d$(order-1)_", vars[i]))
       end
       for index in 1:n
-        ∇fun = differentiate(fun[index], prev_args)
-        dfun = UTF8String["$(∇fun[1])"]
+        ∇ = differentiate(fun[index], prev_args)
         for j = 2:(order-1)*n+1
-          push!(dfun, "($(∇fun[j])) * $(args[j+n])")
+          ∇[j] = :($(∇[j])*$(args[j+n]))
         end
-        fun[index] = reduce((a,b)->"$a + $b", dfun)
-        integrator.derivatives[index, order] = eval(parse("($(reduce((a,b)->"$a,$b",args)))->$(fun[index])"))
+        fun[index] = reduce((a,b)->:($a + $b), ∇)
+        integrator.derivatives[index, order] = eval(:(($(args...), $(params...))->$(fun[index])))
       end
     end
   end
 end
 
 function step(var::Variable, env::Environment, integrator::QSSIntegrator)
-  println("step of variable $(var.name) at time $(now(env))")
+  println("step of variable $(var.symbol) at time $(now(env))")
   var.bev = BaseEvent(env)
   append_callback(var, step, env, integrator)
   Δt = now(env) - var.t
