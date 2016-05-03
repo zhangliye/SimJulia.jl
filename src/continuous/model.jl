@@ -80,12 +80,55 @@ function setindex!(cont::Continuous, param::Parameter, name::AbstractString)
   cont.p[i-n] = param.value
 end
 
+function show(io::IO, var::Variable)
+  print(io, var.symbol)
+end
+
 function setindex!(cont::Continuous, var::Variable, name::AbstractString)
   symbol = Symbol(name)
   i = cont.symbols[symbol]
   cont.vars[i] = var
   var.index = i
   var.symbol = symbol
+end
+
+function calculate_derivatives(cont::Continuous, order::Int)
+  n = length(cont.vars)
+  m = length(cont.params)
+  vars = Array(Symbol, n)
+  for (index, var) in enumerate(cont.vars)
+    vars[index] = var.symbol
+  end
+  params = Array(Symbol, m)
+  for (index, param) in enumerate(cont.params)
+    params[index] = param.symbol
+  end
+  args = Symbol[:t, vars...]
+  derivatives = Array(Function, n, order)
+  for (index, var) in enumerate(cont.vars)
+    derivatives[index, 1] = eval(:(($(args...), $(params...))->$(var.ex)))
+  end
+  if order > 1
+    fun = Array(Expr, n)
+    for (index, var) in enumerate(cont.vars)
+      fun[index] = var.ex
+    end
+    for o = 2:order
+      prev_args = copy(args)
+      for i = 1:n
+        push!(args, symbol("d$(o-1)_", vars[i]))
+      end
+      for index in 1:n
+        ∇ = differentiate(fun[index], prev_args)
+        for j = 2:(o-1)*n+1
+          ∇[j] = :($(∇[j])*$(args[j+n]))
+        end
+        fun[index] = reduce((a,b)->:($a + $b), ∇)
+        derivatives[index, order] = eval(:(($(args...), $(params...))->$(fun[index])))
+      end
+    end
+  end
+  return derivatives
 end
 
 function check_dependencies(cont::Continuous)
@@ -96,30 +139,6 @@ function check_dependencies(cont::Continuous)
     process_expr(var.ex, deps)
     for symbol in intersect(deps, symbols)
       cont.deps[index, cont.symbols[symbol]] = true
-    end
-  end
-end
-
-function process_expr(ex::Expr, deps::Set{Symbol})
-  if ex.head == :call
-    for ex_arg in ex.args[2:end]
-      process_expr(ex_arg, deps)
-    end
-  end
-end
-
-function process_expr(symbol::Symbol, deps::Set{Symbol})
-  push!(deps, symbol)
-end
-
-function process_expr(::Any, ::Set{Symbol})
-
-end
-
-function advance_time(var::Variable, Δt::Float64)
-  for i = 1:length(var.x)
-    for j = i+1:length(var.x)
-      var.x[i] += var.x[j]*Δt^(j-i)/factorial(j-i)
     end
   end
 end

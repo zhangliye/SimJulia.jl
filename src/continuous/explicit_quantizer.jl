@@ -19,3 +19,7 @@ end
 function compute_next_time(quantizer::ExplicitQuantizer, Δq::Float64, x::Vector{Float64})
   (factorial(quantizer.order)*Δq/x[end])^(1/quantizer.order)
 end
+
+function recompute_next_time(quantizer::ExplicitQuantizer, Δq::Float64, x::Vector{Float64})
+  (factorial(quantizer.order)*Δq/x[end])^(1/quantizer.order)
+end

@@ -9,14 +9,13 @@ type QSSIntegrator{Q<:AbstractQuantizer} <: AbstractIntegrator
     integrator = new()
     integrator.cont = cont
     integrator.quantizer = Q(n, order)
-    integrator.derivatives = Array(Function, n, order)
     return integrator
   end
 end
 
 function initialize(ev::AbstractEvent, env::AbstractEnvironment, integrator::QSSIntegrator)
   println("initialize")
-  add_derivatives(integrator)
+  integrator.derivatives = calculate_derivatives(integrator.cont, integrator.quantizer.order)
   check_dependencies(integrator.cont)
   for (index, var) in enumerate(integrator.cont.vars)
     var.t = now(env)
@@ -29,51 +28,41 @@ function initialize(ev::AbstractEvent, env::AbstractEnvironment, integrator::QSS
   end
 end
 
-function add_derivatives(integrator::QSSIntegrator)
-  n = length(integrator.cont.vars)
-  m = length(integrator.cont.params)
-  vars = Array(Symbol, n)
-  for (index, var) in enumerate(integrator.cont.vars)
-    vars[index] = var.symbol
-  end
-  params = Array(Symbol, m)
-  for (index, param) in enumerate(integrator.cont.params)
-    params[index] = param.symbol
-  end
-  args = Symbol[:t, vars...]
-  for (index, var) in enumerate(integrator.cont.vars)
-    integrator.derivatives[index, 1] = eval(:(($(args...), $(params...))->$(var.ex)))
-  end
-  if integrator.quantizer.order > 1
-    fun = Array(Expr, n)
-    for (index, var) in enumerate(integrator.cont.vars)
-      fun[index] = var.ex
-    end
-    for order = 2:integrator.quantizer.order
-      prev_args = copy(args)
-      for i = 1:n
-        push!(args, symbol("d$(order-1)_", vars[i]))
-      end
-      for index in 1:n
-        ∇ = differentiate(fun[index], prev_args)
-        for j = 2:(order-1)*n+1
-          ∇[j] = :($(∇[j])*$(args[j+n]))
-        end
-        fun[index] = reduce((a,b)->:($a + $b), ∇)
-        integrator.derivatives[index, order] = eval(:(($(args...), $(params...))->$(fun[index])))
-      end
-    end
-  end
-end
-
 function step(var::Variable, env::Environment, integrator::QSSIntegrator)
+  cont = integrator.cont
+  quantizer = integrator.quantizer
   println("step of variable $(var.symbol) at time $(now(env))")
   var.bev = BaseEvent(env)
   append_callback(var, step, env, integrator)
   Δt = now(env) - var.t
-  advance_time(var, Δt)
+  var.x = advance_time(var.x, Δt)
   var.t = now(env)
-  update_quantized_state(integrator.quantizer, var.index, var.t, var.x)
+  update_quantized_state(quantizer, var.index, var.t, var.x)
   Δq = max(var.Δrel*var.x[1], var.Δabs)
-  schedule(var, compute_next_time(integrator.quantizer, Δq, var.x))
+  schedule(var, compute_next_time(quantizer, Δq, var.x))
+  i = var.index
+  for j in filter((j)->cont.deps[j,i], 1:length(cont.vars))
+    Δt = var.t - cont.vars[j].t
+    cont.vars[j].x[1] = update_time(cont.vars[j].x, Δt)
+    cont.vars[j].t = var.t
+    for k in filter((k)->cont.deps[j,k]&&(i!=k), 1:length(cont.vars))
+      Δt = var.t - quantizer.t[k]
+      quantizer.q[k, :] = advance_time(vec(quantizer.q[k,:]), Δt)
+      quantizer.t[k] = var.t
+    end
+    cont.vars[j].x[2:end] = evaluate_derivatives(vec(integrator.derivatives[j,:]), var.t, quantizer.q, cont.p)
+    Δq = max(cont.vars[j].Δrel*cont.vars[j].x[1], cont.vars[j].Δabs)
+    Δx = cont.vars[j].x
+    Δx[1:end-1] -= vec(quantizer.q[j, :])
+    schedule(cont.vars[j], recompute_next_time(quantizer, Δq, Δx))
+  end
+end
+
+function evaluate_derivatives(derivs::Vector{Function}, t::Float64, q::Matrix{Float64}, p::Vector{Float64})
+  order = length(derivs)
+  res = Array(Float64, order)
+  for i in 1:order
+    res[i] = derivs[i](t, q[:,1:i]..., p...)
+  end
+  return res
 end
