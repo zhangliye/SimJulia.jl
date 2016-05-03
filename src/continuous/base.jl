@@ -37,3 +37,66 @@ function update_time(coeff::Vector{Float64}, Δt::Float64)
   end
   return res
 end
+
+function roots(x::Vector{Float64})
+  n = length(x)
+  res = Array(Float64, n-1)
+  if n == 2
+    if x[2] != 0.0
+      res = [-x[1]/x[2]]
+    else
+      res = [inf]
+    end
+  elseif x[1] == 0.0
+    res = [0.0; roots(x[2:end])]
+  else
+    mat = zeros(Float64, n-1, n-1)
+    mat[2:n-1,1:n-2] = eye(n-2)
+    for (index, v) in enumerate(x[2:end])
+      mat[1,index]=-v/factorial(index)/x[1]
+    end
+    res = eigvals(mat)
+  end
+  return res
+end
+
+function compute_next_time(Δx::Float64, Δq::Float64, order::Int)
+  (factorial(order)*Δq/abs(Δx))^(1/order)
+end
+
+function real_positive(v)
+  res = false
+  if isreal(v)
+    if real(v)>=0.0
+      res = true
+    end
+  end
+  return res
+end
+
+function minimum_or_inf(v::Vector)
+  res = inf
+  if !isempty(v)
+    res = minimum(real(v))
+  end
+  return res
+end
+
+function recompute_next_time(Δx::Vector{Float64}, Δq::Float64)
+  n = copy(Δx)
+  n[1] -= Δq
+  p = copy(Δx)
+  p[1] += Δq
+  sols = filter((x)->real_positive(x), [roots(n); roots(p)])
+  println(sols)
+  return minimum_or_inf(sols)
+end
+
+function evaluate_derivatives(derivs::Vector{Function}, t::Float64, q::Matrix{Float64}, p::Vector{Float64})
+  order = length(derivs)
+  res = Array(Float64, order)
+  for i in 1:order
+    res[i] = derivs[i](t, q[:,1:i]..., p...)
+  end
+  return res
+end

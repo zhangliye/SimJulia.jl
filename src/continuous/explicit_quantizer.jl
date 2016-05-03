@@ -15,11 +15,3 @@ function update_quantized_state(quantizer::ExplicitQuantizer, index::Int, t::Flo
   quantizer.t[index] = t
   quantizer.q[index,:] = x[1:quantizer.order]
 end
-
-function compute_next_time(quantizer::ExplicitQuantizer, Δq::Float64, x::Vector{Float64})
-  (factorial(quantizer.order)*Δq/x[end])^(1/quantizer.order)
-end
-
-function recompute_next_time(quantizer::ExplicitQuantizer, Δq::Float64, x::Vector{Float64})
-  (factorial(quantizer.order)*Δq/x[end])^(1/quantizer.order)
-end
