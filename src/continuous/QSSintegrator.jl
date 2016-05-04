@@ -36,7 +36,7 @@ function step(var::Variable, env::Environment, integrator::QSSIntegrator)
   quantizer = integrator.quantizer
   n = length(cont.vars)
   integrator.steps += 1
-  #println("step nr $(integrator.steps) of variable $(var.symbol) at time $(now(env))")
+  println("step nr $(integrator.steps) of variable $(var.symbol) at time $(now(env))")
   Δt = now(env) - var.t
   var.x = advance_time(var.x, Δt)
   #println(var, ": ", var.x)
