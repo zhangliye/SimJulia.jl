@@ -18,8 +18,9 @@ type Variable <: AbstractEvent
   Δrel :: Float64
   x :: Vector{Float64}
   t :: Float64
-  function Variable(f::AbstractString, x₀::Float64, Δabs::Float64, Δrel::Float64)
+  function Variable(env::Environment, f::AbstractString, x₀::Float64, Δabs::Float64, Δrel::Float64)
     var = new()
+    var.bev = BaseEvent(env)
     var.ex = parse(f)
     var.x = [x₀]
     var.Δabs = Δabs
@@ -28,12 +29,12 @@ type Variable <: AbstractEvent
   end
 end
 
-function Variable(f::AbstractString, x₀::Float64, Δq::Float64)
-  Variable(f, x₀, Δq, Δq)
+function Variable(env::Environment, f::AbstractString, x₀::Float64, Δq::Float64)
+  Variable(env, f, x₀, Δq, Δq)
 end
 
-function Variable(f::AbstractString, x₀::Float64)
-  Variable(f, x₀, 1e-6, 1e-6)
+function Variable(env::Environment, f::AbstractString, x₀::Float64)
+  Variable(env, f, x₀, 1e-6)
 end
 
 type Continuous
@@ -104,9 +105,9 @@ function calculate_derivatives(cont::Continuous, order::Int)
     params[index] = param.symbol
   end
   args = Symbol[:t, vars...]
-  derivatives = Array(Function, n, order)
+  derivatives = Array(Function, order, n)
   for (index, var) in enumerate(cont.vars)
-    derivatives[index, 1] = eval(:(($(args...), $(params...))->$(var.ex)))
+    derivatives[1, index] = eval(:(($(args...), $(params...))->$(var.ex)))
   end
   if order > 1
     fun = Array(Expr, n)
@@ -124,7 +125,7 @@ function calculate_derivatives(cont::Continuous, order::Int)
           ∇[j] = :($(∇[j])*$(args[j+n]))
         end
         fun[index] = reduce((a,b)->:($a + $b), ∇)
-        derivatives[index, order] = eval(:(($(args...), $(params...))->$(fun[index])))
+        derivatives[o, index] = eval(:(($(args...), $(params...))->$(fun[index])))
       end
     end
   end

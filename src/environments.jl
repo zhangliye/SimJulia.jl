@@ -27,8 +27,8 @@ function step(env::Environment)
   dequeue!(env.sched)
   env.time = key.time
   bev.state = EVENT_PROCESSING
-  while !isempty(bev.callbacks)
-    pop!(bev.callbacks)(key.ev)
+  for callback in bev.callbacks
+    callback(key.ev)
   end
   bev.state = EVENT_PROCESSED
 end

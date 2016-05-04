@@ -40,31 +40,40 @@ end
 
 function roots(x::Vector{Float64})
   n = length(x)
-  res = Array(Float64, n-1)
-  if n == 2
-    if x[2] != 0.0
-      res = [-x[1]/x[2]]
-    else
-      res = [inf]
-    end
-  elseif x[1] == 0.0
-    res = [0.0; roots(x[2:end])]
+  res = Array(Complex{Float64}, n-1)
+  if n == 1
+    res = Complex{Float64}[]
   else
-    mat = zeros(Float64, n-1, n-1)
-    mat[2:n-1,1:n-2] = eye(n-2)
-    for (index, v) in enumerate(x[2:end])
-      mat[1,index]=-v/factorial(index)/x[1]
+    if x[n] != 0.0
+      if x[1] == 0.0
+        res[1] = 0.0
+        res[2:n] = roots(x[2:n])
+      else
+        mat = zeros(Float64, n-1, n-1)
+        mat[1:n-2, 2:n-1] = eye(Float64, n-2)
+        mat[n-1, :] = - x[1:n-1] / x[n]
+        res[1:n-1] = eigvals(mat)
+      end
+    else
+      res = roots(x[1:n-1])
     end
-    res = eigvals(mat)
   end
   return res
 end
 
-function compute_next_time(Δx::Float64, Δq::Float64, order::Int)
-  (factorial(order)*Δq/abs(Δx))^(1/order)
+function compute_next_time(x::Vector{Float64}, Δq::Float64, order::Int)
+  res = Inf
+  if order > 0
+    if x[end] == 0.0
+      res = compute_next_time(x[1:order], Δq, order-1)
+    else
+      res = (factorial(order)*Δq/abs(x[end]))^(1/order)
+    end
+  end
+  return res
 end
 
-function real_positive(v)
+function real_positive(v::Complex{Float64})
   res = false
   if isreal(v)
     if real(v)>=0.0
@@ -74,8 +83,8 @@ function real_positive(v)
   return res
 end
 
-function minimum_or_inf(v::Vector)
-  res = inf
+function minimum_or_inf(v::Vector{Complex{Float64}})
+  res = Inf
   if !isempty(v)
     res = minimum(real(v))
   end
@@ -88,7 +97,6 @@ function recompute_next_time(Δx::Vector{Float64}, Δq::Float64)
   p = copy(Δx)
   p[1] += Δq
   sols = filter((x)->real_positive(x), [roots(n); roots(p)])
-  println(sols)
   return minimum_or_inf(sols)
 end
 

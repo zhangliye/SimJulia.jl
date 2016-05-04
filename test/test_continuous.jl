@@ -1,10 +1,23 @@
 using SimJulia
 
+function print_solution_var1(var::Variable)
+  t = now(var.bev.env)
+  Δt = t - var.t
+  println("time=$t, x₁=$(SimJulia.update_time(var.x, Δt)), x₁ex=$(3/5*exp(-t)+2/5*exp(-6t))")
+end
+
+function print_solution_var2(var::Variable)
+  t = now(var.bev.env)
+  Δt = t - var.t
+  println("time=$t, x₂=$(SimJulia.update_time(var.x, Δt)), x₂ex=$(12/5*exp(-t)-2/5*exp(-6t))")
+end
+
 env = Environment()
-cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, ["x₁", "x₂"], ["p₁"]; order=2)
-#cont["x₁"] = Variable("0.1x₁+0.01x₁*x₂-0.01x₁^2", 10.0, 0.001)
-#cont["x₂"] = Variable("-0.4x₂+0.5x₁*x₂+p₁", 10.0, 0.001)
-cont["x₁"] = Variable("x₁+x₂-1.0", 0.0, 1.0)
-cont["x₂"] = Variable("1.0-x₁-x₂", 0.0, 1.0)
-cont["p₁"] = Parameter(0.0)
-run(env, 10.0)
+cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, ["x₁", "x₂"]; order=7)
+var1 = Variable(env, "-5x₁+x₂", 1.0, 1.0e-10)
+var2 = Variable(env, "4x₁-2x₂", 2.0)
+cont["x₁"] = var1
+cont["x₂"] = var2
+append_callback(var1, print_solution_var1)
+append_callback(var2, print_solution_var2)
+run(env, 2.0)
