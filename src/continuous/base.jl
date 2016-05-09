@@ -20,10 +20,14 @@ end
 function advance_time(coeff::Vector{Float64}, Δt::Float64)
   n = length(coeff)
   res = Array(Float64, n)
+  fac = Array(Float64, n-1)
+  for i = 1:n-1
+    fac[i] = Δt^i/factorial(i)
+  end
   for i = 1:n
     res[i] = coeff[i]
     for j = i+1:n
-      res[i] += coeff[j]*Δt^(j-i)/factorial(j-i)
+      res[i] += coeff[j]*fac[j-i]
     end
   end
   return res
@@ -50,8 +54,8 @@ function roots(x::Vector{Float64})
         res[2:n] = roots(x[2:n])
       else
         mat = zeros(Float64, n-1, n-1)
-        mat[1:n-2, 2:n-1] = eye(Float64, n-2)
-        mat[n-1, :] = - x[1:n-1] / x[n]
+        mat[2:n-1, 1:n-2] = eye(Float64, n-2)
+        mat[:, n-1] = - x[1:n-1] / x[n]
         res[1:n-1] = eigvals(mat)
       end
     else
@@ -91,12 +95,17 @@ function minimum_or_inf(v::Vector{Complex{Float64}})
   return res
 end
 
-function recompute_next_time(Δx::Vector{Float64}, Δq::Float64)
-  n = copy(Δx)
-  n[1] -= Δq
-  p = copy(Δx)
-  p[1] += Δq
-  sols = filter((x)->real_positive(x), [roots(n); roots(p)])
+function recompute_next_time(x::Vector{Float64}, q::Vector{Float64}, Δq::Float64)
+  Δx = copy(x)
+  for (index, q) in enumerate(q)
+    Δx[index] -= q
+    Δx[index] /= factorial(index-1)
+  end
+  neg = copy(Δx)
+  neg[1] -= Δq
+  pos = copy(Δx)
+  pos[1] += Δq
+  sols = filter((x)->real_positive(x), [roots(neg); roots(pos)])
   return minimum_or_inf(sols)
 end
 

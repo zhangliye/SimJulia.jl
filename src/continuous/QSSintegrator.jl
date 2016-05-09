@@ -22,10 +22,9 @@ function initialize(ev::AbstractEvent, env::AbstractEnvironment, integrator::QSS
   check_dependencies(cont)
   for (index, var) in enumerate(cont.vars)
     var.t = now(env)
-    quantizer.q[index, 1] = var.x[1]
+    quantizer.q[1, index] = var.x[1]
     var.x = zeros(Float64, quantizer.order+1)
-    var.x[1] = quantizer.q[index, 1]
-    #var.x[2:end] = evaluate_derivatives(integrator.derivatives[:,index], var.t, quantizer.q, cont.p)
+    var.x[1] = quantizer.q[1, index]
     append_callback(var, step, env, integrator)
     schedule(var)
   end
@@ -36,34 +35,30 @@ function step(var::Variable, env::Environment, integrator::QSSIntegrator)
   quantizer = integrator.quantizer
   n = length(cont.vars)
   integrator.steps += 1
-  println("step nr $(integrator.steps) of variable $(var.symbol) at time $(now(env))")
-  Δt = now(env) - var.t
+  t = now(env)
+  println("step nr $(integrator.steps) of variable $(var.symbol) at time $t")
+  Δt = t - var.t
   var.x = advance_time(var.x, Δt)
-  #println(var, ": ", var.x)
-  var.t = now(env)
-  update_quantized_state(quantizer, var.index, var.t, var.x)
+  var.t = t
+  update_quantized_state(quantizer, var.index, t, var.x)
   Δq = max(var.Δrel*var.x[1], var.Δabs)
   schedule(var, compute_next_time(var.x, Δq, quantizer.order))
   i = var.index
   for j in filter((j)->cont.deps[j,i], 1:n)
-    Δt = var.t - cont.vars[j].t
-    cont.vars[j].x[1] = update_time(cont.vars[j].x, Δt)
-    cont.vars[j].t = var.t
+    dep = cont.vars[j]
+    Δt = t - dep.t
+    dep.x[1] = update_time(dep.x, Δt)
+    dep.t = t
     for k in filter((k)->cont.deps[j,k]&&(i!=k), 1:n)
-      Δt = var.t - quantizer.t[k]
-      quantizer.q[k, :] = advance_time(vec(quantizer.q[k,:]), Δt)
-      quantizer.t[k] = var.t
+      Δt = t - quantizer.t[k]
+      quantizer.q[:,k] = advance_time(quantizer.q[:,k], Δt)
+      quantizer.t[k] = t
     end
-    cont.vars[j].x[2:end] = evaluate_derivatives(integrator.derivatives[:,j], var.t, quantizer.q, cont.p)
-    Δq = max(cont.vars[j].Δrel*cont.vars[j].x[1], cont.vars[j].Δabs)
-    Δx = copy(cont.vars[j].x)
-    for (index, q) in enumerate(quantizer.q[j, :])
-      Δx[index] -= q
-      Δx[index] /= factorial(index-1)
-    end
-    Δt = recompute_next_time(Δx, Δq)
+    dep.x[2:end] = evaluate_derivatives(integrator.derivatives[:,j], t, transpose(quantizer.q), cont.p)
+    Δq = max(dep.Δrel*dep.x[1], dep.Δabs)
+    Δt = recompute_next_time(dep.x, quantizer.q[:,j], Δq)
     if Δt != Inf || i != j
-      schedule(cont.vars[j], Δt)
+      schedule(dep, Δt)
     end
   end
 end
