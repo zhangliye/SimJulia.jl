@@ -4,6 +4,8 @@ module SimJulia
   using Base.Order
   using Base.Collections
 
+  using Calculus
+
   import Base.show, Base.isless, Base.yield, Base.run, Base.count, Base.isless
   import Base.now, Base.step, Base.&, Base.|
   import Base.setindex!
@@ -13,7 +15,7 @@ module SimJulia
   export Event, Timeout, EventOperator, AllOf, AnyOf, (&), (|)
   export Process, Interrupt, yield, is_process_done, cause
   export Environment, step, peek, now, active_process
-  export Continuous, Variable, Parameter, QSSIntegrator, ExplicitQuantizer
+  export Continuous, Variable, Parameter, QSSIntegrator, ExplicitQuantizer, RKIntegrator
   export DelayedProcess
   export Resource, Preempted, Get, Put, Request, Release, cancel, by, usage_since, capacity, count
   export Container, level

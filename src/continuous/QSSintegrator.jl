@@ -1,5 +1,3 @@
-using Calculus
-
 type QSSIntegrator{Q<:AbstractQuantizer} <: AbstractIntegrator
   cont :: Continuous
   quantizer :: Q
@@ -30,7 +28,7 @@ function initialize(ev::AbstractEvent, env::AbstractEnvironment, integrator::QSS
   end
 end
 
-function step(var::Variable, env::Environment, integrator::QSSIntegrator)
+function step(var::Variable, env::AbstractEnvironment, integrator::QSSIntegrator)
   cont = integrator.cont
   quantizer = integrator.quantizer
   n = length(cont.vars)
