@@ -42,39 +42,31 @@ function update_time(coeff::Vector{Float64}, Δt::Float64)
   return res
 end
 
-function roots(x::Vector{Float64})
-  n = length(x)
-  res = Array(Complex{Float64}, n-1)
-  if n == 1
-    res = Complex{Float64}[]
-  else
-    if x[n] != 0.0
-      if x[1] == 0.0
-        res[1] = 0.0
-        res[2:n] = roots(x[2:n])
-      else
-        mat = zeros(Float64, n-1, n-1)
-        mat[2:n-1, 1:n-2] = eye(Float64, n-2)
-        mat[:, n-1] = - x[1:n-1] / x[n]
-        res[1:n-1] = eigvals(mat)
-      end
-    else
-      res = roots(x[1:n-1])
-    end
-  end
-  return res
-end
+# function roots(x::Vector{Float64})
+#   n = length(x)
+#   res = Array(Complex{Float64}, n-1)
+#   if n == 1
+#     res = Complex{Float64}[]
+#   else
+#     if x[n] != 0.0
+#       if x[1] == 0.0
+#         res[1] = 0.0
+#         res[2:n] = roots(x[2:n])
+#       else
+#         mat = zeros(Float64, n-1, n-1)
+#         mat[2:n-1, 1:n-2] = eye(Float64, n-2)
+#         mat[:, n-1] = - x[1:n-1] / x[n]
+#         res[1:n-1] = eigvals(mat)
+#       end
+#     else
+#       res = roots(x[1:n-1])
+#     end
+#   end
+#   return res
+# end
 
 function compute_next_time(x::Vector{Float64}, Δq::Float64, order::Int)
-  res = Inf
-  if order > 0
-    if x[end] == 0.0
-      res = compute_next_time(x[1:order], Δq, order-1)
-    else
-      res = (factorial(order)*Δq/abs(x[end]))^(1/order)
-    end
-  end
-  return res
+  return (factorial(order)*Δq/abs(x[end]))^(1/order)
 end
 
 function real_positive(v::Complex{Float64})

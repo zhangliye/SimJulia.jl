@@ -5,6 +5,7 @@ module SimJulia
   using Base.Collections
 
   using Calculus
+  using PolynomialRoots
 
   import Base.show, Base.isless, Base.yield, Base.run, Base.count, Base.isless
   import Base.now, Base.step, Base.&, Base.|

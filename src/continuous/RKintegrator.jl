@@ -87,7 +87,7 @@ function step(ev::AbstractEvent, env::AbstractEnvironment, integrator::RKIntegra
   h = Δt_now
   error_ratio = 0.0
   t = last_time
-  println("Steps: $(integrator.steps)")
+  #println("Steps: $(integrator.steps)")
   for (index, var) in enumerate(cont.vars)
     var.t = last_time
     var.x[1] = integrator.x[index]

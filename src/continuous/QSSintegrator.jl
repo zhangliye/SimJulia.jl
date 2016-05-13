@@ -34,13 +34,17 @@ function step(var::Variable, env::AbstractEnvironment, integrator::QSSIntegrator
   n = length(cont.vars)
   integrator.steps += 1
   t = now(env)
-  println("step nr $(integrator.steps) of variable $(var.symbol) at time $t")
+  #println("step nr $(integrator.steps) of variable $(var.symbol) at time $t")
   Δt = t - var.t
   var.x = advance_time(var.x, Δt)
+  #println("$var, $(var.x)")
   var.t = t
   update_quantized_state(quantizer, var.index, t, var.x)
-  Δq = max(var.Δrel*var.x[1], var.Δabs)
-  schedule(var, compute_next_time(var.x, Δq, quantizer.order))
+  #println("$var, $(quantizer.q)")
+  Δq = var.Δabs#max(var.Δrel*var.x[1], var.Δabs)
+  Δt = compute_next_time(var.x, Δq, quantizer.order)
+  #println("$var, $Δt")
+  schedule(var, Δt)
   i = var.index
   for j in filter((j)->cont.deps[j,i], 1:n)
     dep = cont.vars[j]
@@ -53,8 +57,10 @@ function step(var::Variable, env::AbstractEnvironment, integrator::QSSIntegrator
       quantizer.t[k] = t
     end
     dep.x[2:end] = evaluate_derivatives(integrator.derivatives[:,j], t, transpose(quantizer.q), cont.p)
+    #println("$dep, $(dep.x)")
     Δq = max(dep.Δrel*dep.x[1], dep.Δabs)
     Δt = recompute_next_time(dep.x, quantizer.q[:,j], Δq)
+    #println("$dep, $Δt")
     if Δt != Inf || i != j
       schedule(dep, Δt)
     end
