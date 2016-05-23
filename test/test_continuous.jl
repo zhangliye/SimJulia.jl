@@ -69,7 +69,7 @@ end
 function print_solution_var1(var::Variable, count::Counter)
   t = now(var.bev.env)
   push!(count.times, t)
-  x = var.x[1]
+  x = SimJulia.update_time(var.x, t-var.t)
   push!(count.values, x)
   y = 1-sqrt(3)/3*exp(-t/2)*sin(sqrt(3)/2*t)-exp(-t/2)*cos(sqrt(3)/2*t)
   push!(count.exact, y)
@@ -81,7 +81,7 @@ end
 function print_solution_var2(var::Variable, count::Counter)
   t = now(var.bev.env)
   push!(count.times, t)
-  x = var.x[1]
+  x = SimJulia.update_time(var.x, t-var.t)
   push!(count.values, x)
   y = sqrt(12)/3*exp(-t/2)*sin(sqrt(3)/2*t)
   push!(count.exact, y)
@@ -91,8 +91,8 @@ function print_solution_var2(var::Variable, count::Counter)
 end
 
 env = Environment()
-#cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, ["x₁", "x₂"]; order=7)
-cont = Continuous(RKIntegrator, env, ["x₁", "x₂"]; Δt_min=1.0e-12, Δt_max=1.0)
+cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, ["x₁", "x₂"]; order=7)
+#cont = Continuous(RKIntegrator, env, ["x₁", "x₂"]; Δt_min=1.0e-12, Δt_max=1.0)
 x₁ = Variable(env, "1.0x₂", 0.0, 1.0e-9)
 x₂ = Variable(env, "1.0-1.0x₁-1.0x₂", 0.0, 1.0e-9)
 cont["x₁"] = x₁
