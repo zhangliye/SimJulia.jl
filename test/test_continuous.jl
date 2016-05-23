@@ -1,5 +1,5 @@
 using SimJulia
-using Gadfly
+#using Gadfly
 
 # function print_solution_var1(var::Variable)
 #   t = now(var.bev.env)
@@ -106,10 +106,10 @@ run(env, 15.0)
 toc()
 println("$x₁: $(count₁.count) steps")
 println("$x₂: $(count₂.count) steps")
-plot(layer(x=count₁.times, y=abs(count₁.values-count₁.exact), Geom.line),
+#plot(layer(x=count₁.times, y=abs(count₁.values-count₁.exact), Geom.line),
   #layer(x=count₁.times, y=count₁.exact, Geom.line),
   #layer(x=count₂.times, y=count₂.values, Geom.line),
-  layer(x=count₂.times, y=abs(count₂.values-count₂.exact), Geom.line))
+#  layer(x=count₂.times, y=abs(count₂.values-count₂.exact), Geom.line))
 # for (index, value) in enumerate(count₁.values)
 #   println("$(count₁.times[index]): $value")
 # end
