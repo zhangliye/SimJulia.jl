@@ -23,7 +23,7 @@ function initialize(ev::AbstractEvent, env::AbstractEnvironment, integrator::QSS
     quantizer.q[1, index] = var.x[1]
     var.x = zeros(Float64, quantizer.order+1)
     var.x[1] = quantizer.q[1, index]
-    append_callback_first(var, step, env, integrator)
+    append_callback(var, step, env, integrator)
     schedule(var)
   end
   for (index, var) in enumerate(cont.vars)
