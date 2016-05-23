@@ -71,7 +71,7 @@ end
 
 function real_positive(v::Complex{Float64})
   res = false
-  if isreal(v)
+  if abs(imag(v)) < 1.0e-16#*abs(real(v))
     if real(v)>=0.0
       res = true
     end
@@ -87,17 +87,33 @@ function minimum_or_inf(v::Vector{Complex{Float64}})
   return res
 end
 
+function min_pos_root(x::Vector{Float64})
+  res = [Inf]
+  if x[end]==0.0
+    if length(x) > 1
+      res = min_pos_root(x[1:end-1])
+    end
+  else
+    res = roots(x)
+  end
+  return res
+end
+
 function recompute_next_time(x::Vector{Float64}, q::Vector{Float64}, Δq::Float64)
+  if abs(x[1]-q[1]) >= 0.99999999Δq
+    return 0.0
+  end
   Δx = copy(x)
   for (index, q) in enumerate(q)
     Δx[index] -= q
     Δx[index] /= factorial(index-1)
   end
+  Δx[end] /= factorial(length(Δx)-1)
   neg = copy(Δx)
   neg[1] -= Δq
   pos = copy(Δx)
   pos[1] += Δq
-  sols = filter((x)->real_positive(x), [roots(neg); roots(pos)])
+  sols = filter((x)->real_positive(x), [min_pos_root(neg); min_pos_root(pos)])
   return minimum_or_inf(sols)
 end
 

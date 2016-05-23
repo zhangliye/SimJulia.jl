@@ -23,8 +23,11 @@ function initialize(ev::AbstractEvent, env::AbstractEnvironment, integrator::QSS
     quantizer.q[1, index] = var.x[1]
     var.x = zeros(Float64, quantizer.order+1)
     var.x[1] = quantizer.q[1, index]
-    append_callback(var, step, env, integrator)
+    append_callback_first(var, step, env, integrator)
     schedule(var)
+  end
+  for (index, var) in enumerate(cont.vars)
+    var.x[2] = integrator.derivatives[1, index](var.t, quantizer.q[1,:]..., cont.p...)
   end
 end
 
@@ -37,13 +40,13 @@ function step(var::Variable, env::AbstractEnvironment, integrator::QSSIntegrator
   #println("step nr $(integrator.steps) of variable $(var.symbol) at time $t")
   Δt = t - var.t
   var.x = advance_time(var.x, Δt)
-  #println("$var, $(var.x)")
+  #println("$var=$(var.x)")
   var.t = t
   update_quantized_state(quantizer, var.index, t, var.x)
-  #println("$var, $(quantizer.q)")
-  Δq = var.Δabs#max(var.Δrel*var.x[1], var.Δabs)
+  #println("q=$(quantizer.q)")
+  Δq = max(var.Δrel*var.x[1], var.Δabs)
   Δt = compute_next_time(var.x, Δq, quantizer.order)
-  #println("$var, $Δt")
+  #println("Δt=$Δt")
   schedule(var, Δt)
   i = var.index
   for j in filter((j)->cont.deps[j,i], 1:n)
@@ -51,18 +54,20 @@ function step(var::Variable, env::AbstractEnvironment, integrator::QSSIntegrator
     Δt = t - dep.t
     dep.x[1] = update_time(dep.x, Δt)
     dep.t = t
-    for k in filter((k)->cont.deps[j,k]&&(i!=k), 1:n)
+    Δt = t - quantizer.t[j]
+    quantizer.q[:,j] = advance_time(quantizer.q[:,j], Δt)
+    quantizer.t[j] = t
+    for k in filter((k)->cont.deps[j,k]&&(i!=k)&&(j!=k), 1:n)
       Δt = t - quantizer.t[k]
       quantizer.q[:,k] = advance_time(quantizer.q[:,k], Δt)
       quantizer.t[k] = t
     end
     dep.x[2:end] = evaluate_derivatives(integrator.derivatives[:,j], t, transpose(quantizer.q), cont.p)
-    #println("$dep, $(dep.x)")
+    #println("$dep, x=$(dep.x)")
+    #println("q=$(quantizer.q)")
     Δq = max(dep.Δrel*dep.x[1], dep.Δabs)
     Δt = recompute_next_time(dep.x, quantizer.q[:,j], Δq)
-    #println("$dep, $Δt")
-    if Δt != Inf || i != j
-      schedule(dep, Δt)
-    end
+    #println("Δt=$Δt")
+    schedule(dep, Δt)
   end
 end

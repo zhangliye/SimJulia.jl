@@ -26,7 +26,7 @@ module SimJulia
   include("events.jl")
   include("processes.jl")
   include("environments.jl")
-  include("util.jl")
+  include("utils.jl")
   include("continuous/base.jl")
   include("continuous/model.jl")
   include("continuous/explicit_quantizer.jl")

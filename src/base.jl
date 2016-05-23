@@ -22,14 +22,14 @@ end
 
 type BaseEvent
   env :: AbstractEnvironment
-  callbacks :: Set{Function}
+  callbacks :: Vector{Function}
   state :: UInt8
   id :: UInt
   value :: Any
   function BaseEvent(env::AbstractEnvironment)
     ev = new()
     ev.env = env
-    ev.callbacks = Set{Function}()
+    ev.callbacks = Vector{Function}()
     ev.state = EVENT_INITIAL
     ev.id = env.eid += 1
     ev.value = nothing
@@ -117,6 +117,13 @@ function append_callback(ev::AbstractEvent, callback::Function, args...)
     throw(EventProcessed())
   end
   push!(ev.bev.callbacks, (ev)->callback(ev, args...))
+end
+
+function append_callback_first(ev::AbstractEvent, callback::Function, args...)
+  if ev.bev.state == EVENT_PROCESSED
+    throw(EventProcessed())
+  end
+  unshift!(ev.bev.callbacks, (ev)->callback(ev, args...))
 end
 
 function succeed(ev::AbstractEvent, value=nothing)
