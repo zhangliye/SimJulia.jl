@@ -91,10 +91,10 @@ function print_solution_var2(var::Variable, count::Counter)
 end
 
 env = Environment()
-cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, ["x₁", "x₂"]; order=7)
+cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, ["x₁", "x₂"]; order=3)
 #cont = Continuous(RKIntegrator, env, ["x₁", "x₂"]; Δt_min=1.0e-12, Δt_max=1.0)
-x₁ = Variable(env, "1.0x₂", 0.0, 1.0e-9)
-x₂ = Variable(env, "1.0-1.0x₁-1.0x₂", 0.0, 1.0e-9)
+x₁ = Variable(env, "1.0x₂", 0.0, 1.0e-4)
+x₂ = Variable(env, "1.0-1.0x₁-1.0x₂", 0.0, 1.0e-4)
 cont["x₁"] = x₁
 cont["x₂"] = x₂
 count₁ = Counter(0, Float64[], Float64[], Float64[])
