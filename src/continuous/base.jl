@@ -17,6 +17,29 @@ function process_expr(::Any, ::Set{Symbol})
 
 end
 
+# function advance_time(coeff::Vector{Float64}, Δt::Float64)
+#   n = length(coeff)
+#   y = zeros(Float64, n+1, n)
+#   y[1, :] = coeff
+#   y[:, n] = coeff[n]
+#   for j in 2:n+1
+#     for i in n-1:-1:j-1
+#       y[j, i] = y[j-1, i] + Δt * y[j, i+1]
+#     end
+#   end
+#   diag(y[2:n+1,:])
+# end
+
+# function update_time(coeff::Vector{Float64}, Δt::Float64)
+#   n = length(coeff)
+#   res = coeff[n] / factorial(n-1)
+#   for i = n-1:-1:1
+#     res = coeff[i] / factorial(i-1) + Δt * res
+#   end
+#   return res
+# end
+
+
 function advance_time(coeff::Vector{Float64}, Δt::Float64)
   n = length(coeff)
   res = Array(Float64, n)
