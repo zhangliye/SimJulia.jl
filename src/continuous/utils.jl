@@ -48,13 +48,12 @@ function quadratic(coeff::Vector{Float64})
           res[2] = -real(res[1])
         end
       else
-        Δ = coeff[2]*coeff[2] - 4coeff[1]*coeff[3]
+        Δ = 1.0 - 4coeff[1]*coeff[3] / (coeff[2]*coeff[2])
         if Δ < 0.0
-          res[1] = -0.5coeff[2]/coeff[3]+0.5*sqrt(-Δ)/coeff[3]*im
+          res[1] = -0.5coeff[2]/coeff[3]+0.5coeff[2]*sqrt(-Δ)/coeff[3]*im
           res[2] = real(res[1]) - imag(res[1])*im
         else
-          sqrtΔ = sqrt(Δ)
-          q = -0.5*(coeff[2]+sign(coeff[2])*sqrtΔ)
+          q = -0.5*(1.0+sign(coeff[2])*sqrt(Δ))*coeff[2]
           res[1] = q / coeff[3]
           res[2] = coeff[1] / q
         end
@@ -111,11 +110,11 @@ function feval(coeff::Vector{Float64}, z::Complex{Float64})
   return coeff[1] + rz*r - q*s + r*iz*im
 end
 
-# function feval(coeff::Vector{Float64}, z::Complex{Float64})
-#   n = length(coeff)
-#   res = coeff[n]+0im
-#   for val in reverse(coeff, 1, n-1)[1:n-1]
-#     res = z * res + val
-#   end
-#   return res
-# end
+function feval(coeff::Vector{Float64}, x::Float64)
+  n = length(coeff)
+  res = coeff[n]
+  for val in reverse(coeff, 1, n-1)[1:n-1]
+    res = x * res + val
+  end
+  return res
+end
