@@ -63,6 +63,21 @@ function quadratic(coeff::Vector{Float64})
   return res
 end
 
+function cubic(coeff::Vector{Float64})
+  if coeff[4] == 0.0
+    res = linear(coeff[1:3])
+  else
+    res = Array(Complex{Float64}, 3)
+    if coeff[1] == 0.0
+      res[1] = 0.0
+      res[2] = linear(coeff[2:4])
+    else
+
+    end
+  end
+  return res
+end
+
 function roots(coeff::Vector{Float64})
   n = length(coeff)
   if n == 1
@@ -88,6 +103,7 @@ function roots(coeff::Vector{Float64})
         mat[2:n-1, 1:n-2] = eye(Float64, n-2)
         mat[:, n-1] = - coeff[1:n-1] / coeff[n]
         res[1:n-1] = eigvals(mat)
+        #res[1:n-1] = roots(Poly(coeff))
       end
     end
   end

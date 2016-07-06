@@ -37,12 +37,24 @@ function Variable(env::Environment, f::AbstractString, x₀::Float64)
   Variable(env, f, x₀, 1e-6)
 end
 
+type ZeroCrossing <: AbstractEvent
+  bev :: BaseEvent
+  ex :: Expr
+  function ZeroCrossing(env::Environment, f::AbstractString)
+    zc = new()
+    zc.bev = BaseEvent(env)
+    zc.ex = parse(f)
+    return zc
+  end
+end
+
 type Continuous
   symbols :: Dict{Symbol, Int}
   vars :: Vector{Variable}
   params :: Vector{Parameter}
   p :: Vector{Float64}
   deps :: Matrix{Bool}
+  zcs :: Dict{ZeroCrossing, Vector{Bool}}
   function Continuous(vars::Vector, params::Vector)
     n = length(vars)
     m = length(params)

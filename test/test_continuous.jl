@@ -71,10 +71,10 @@ function print_solution_var1(var::Variable, count::Counter)
   push!(count.times, t)
   x = SimJulia.update_time(var.x, t-var.t)
   push!(count.values, x)
-  y = 1-sqrt(3)/3*exp(-t/2)*sin(sqrt(3)/2*t)-exp(-t/2)*cos(sqrt(3)/2*t)
-  push!(count.exact, y)
-  Δx = abs(y - x)
-  println("time=$t, $var=$x, err=$(abs(Δx))")
+  #y = 1-sqrt(3)/3*exp(-t/2)*sin(sqrt(3)/2*t)-exp(-t/2)*cos(sqrt(3)/2*t)
+  #push!(count.exact, y)
+  #Δx = abs(y - x)
+  #println("time=$t, $var=$x")
   count.count += 1
 end
 
@@ -83,18 +83,18 @@ function print_solution_var2(var::Variable, count::Counter)
   push!(count.times, t)
   x = SimJulia.update_time(var.x, t-var.t)
   push!(count.values, x)
-  y = sqrt(12)/3*exp(-t/2)*sin(sqrt(3)/2*t)
-  push!(count.exact, y)
-  Δx = abs(y - x)
-  println("time=$t, $var=$x, err=$(abs(Δx))")
+  #y = sqrt(12)/3*exp(-t/2)*sin(sqrt(3)/2*t)
+  #push!(count.exact, y)
+  #Δx = abs(y - x)
+  #println("time=$t, $var=$x")
   count.count += 1
 end
 
 env = Environment()
-cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, ["x₁", "x₂"]; order=3)
+cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, ["x₁", "x₂"]; order=6)
 #cont = Continuous(RKIntegrator, env, ["x₁", "x₂"]; Δt_min=1.0e-12, Δt_max=1.0)
-x₁ = Variable(env, "1.0x₂", 0.0, 1.0e-4)
-x₂ = Variable(env, "1.0-1.0x₁-1.0x₂", 0.0, 1.0e-4)
+x₁ = Variable(env, "1.5x₁ - x₁*x₂", 10.0, 1.0e-8)
+x₂ = Variable(env, "-3x₂ +x₁*x₂", 5.0, 1.0e-8)
 cont["x₁"] = x₁
 cont["x₂"] = x₂
 count₁ = Counter(0, Float64[], Float64[], Float64[])
@@ -102,10 +102,13 @@ count₂ = Counter(0, Float64[], Float64[], Float64[])
 append_callback(x₁, print_solution_var1, count₁)
 append_callback(x₂, print_solution_var2, count₂)
 tic()
-run(env, 15.0)
+run(env, 20.0)
 toc()
 println("$x₁: $(count₁.count) steps")
 println("$x₂: $(count₂.count) steps")
+for (i, t) in enumerate(count₁.times)
+  println("$t: $(count₁.values[i])")
+end
 #plot(layer(x=count₁.times, y=abs(count₁.values-count₁.exact), Geom.line),
   #layer(x=count₁.times, y=count₁.exact, Geom.line),
   #layer(x=count₂.times, y=count₂.values, Geom.line),
