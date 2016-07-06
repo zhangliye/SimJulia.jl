@@ -3,5 +3,3 @@ docs/build
 .DS_Store
 
 .travis.yml
-
-src/resources/stores.jl
