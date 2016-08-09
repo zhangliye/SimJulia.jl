@@ -70,9 +70,32 @@ function cubic(coeff::Vector{Float64})
     res = Array(Complex{Float64}, 3)
     if coeff[1] == 0.0
       res[1] = 0.0
-      res[2] = linear(coeff[2:4])
+      res[2] = quadratic(coeff[2:4])
     else
-
+      A = coeff[3]/coeff[4]
+      B = coeff[2]/coeff[4]
+      C = coeff[1]/coeff[4]
+      Q = (A^2-3B)/9
+      R = (2*A^3-9A*B+27C)/54
+      S = -A/3
+      if R^2 < Q^3
+        P = -2*sqrt(Q)
+        ϕ = acos(R/sqrt(Q^3))
+        res[1] = P*cos(ϕ/3)+S
+        res[2] = P*cos((ϕ+2π)/3)+S
+        res[3] = P*cos((ϕ-2π)/3)+S
+      else
+        T = -sign(R)*cbrt(abs(R)+sqrt(R^2-Q^3))
+        U = 0.0
+        if T != 0.0
+          U = Q/T
+        end
+        V = 0.5*(T+U)
+        W = 0.5*sqrt(3)*(T-U)
+        res[1] = S+2V
+        res[2] = S-V+W*im
+        res[3] = conj(res[2])
+      end
     end
   end
   return res
@@ -86,8 +109,8 @@ function roots(coeff::Vector{Float64})
     res = linear(coeff)
   elseif n == 3
     res = quadratic(coeff)
-  #elseif n == 4
-  #  res = cubic(coeff)
+  elseif n == 4
+    res = cubic(coeff)
   #elseif n == 5
   #  res = quartic(coeff)
   else

@@ -91,7 +91,7 @@ function print_solution_var2(var::Variable, count::Counter)
 end
 
 env = Environment()
-cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, ["x₁", "x₂"]; order=6)
+cont = Continuous(QSSIntegrator{ExplicitQuantizer}, env, ["x₁", "x₂"]; order=2)
 #cont = Continuous(RKIntegrator, env, ["x₁", "x₂"]; Δt_min=1.0e-12, Δt_max=1.0)
 x₁ = Variable(env, "1.5x₁ - x₁*x₂", 10.0, 1.0e-8)
 x₂ = Variable(env, "-3x₂ +x₁*x₂", 5.0, 1.0e-8)
@@ -106,9 +106,9 @@ run(env, 20.0)
 toc()
 println("$x₁: $(count₁.count) steps")
 println("$x₂: $(count₂.count) steps")
-for (i, t) in enumerate(count₁.times)
-  println("$t: $(count₁.values[i])")
-end
+# for (i, t) in enumerate(count₁.times)
+#   println("$t: $(count₁.values[i])")
+# end
 #plot(layer(x=count₁.times, y=abs(count₁.values-count₁.exact), Geom.line),
   #layer(x=count₁.times, y=count₁.exact, Geom.line),
   #layer(x=count₂.times, y=count₂.values, Geom.line),
