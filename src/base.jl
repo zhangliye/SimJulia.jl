@@ -1,6 +1,8 @@
 abstract type AbstractEvent end
 abstract type Environment end
 
+## add new comments by LY
+
 @enum EVENT_STATE idle=0 scheduled=1 triggered=2
 
 struct EventTriggered <: Exception
