@@ -1,4 +1,5 @@
 abstract type AbstractProcess <: AbstractEvent end
+abstract type DiscreteProcess <: AbstractProcess end
 
 struct InterruptException <: Exception
   by :: AbstractProcess
@@ -22,9 +23,9 @@ mutable struct Simulation <: Environment
   heap :: DataStructures.PriorityQueue{BaseEvent, EventKey}
   eid :: UInt
   sid :: UInt
-  active_proc :: Nullable{AbstractProcess}
+  active_proc :: Union{AbstractProcess, Nothing}
   function Simulation(initial_time::Number=zero(Float64))
-    new(initial_time, DataStructures.PriorityQueue(BaseEvent, EventKey), zero(UInt), zero(UInt), Nullable{AbstractProcess}())
+    new(initial_time, DataStructures.PriorityQueue{BaseEvent, EventKey}(), zero(UInt), zero(UInt), nothing)
   end
 end
 
@@ -33,7 +34,7 @@ function step(sim::Simulation)
   (bev, key) = DataStructures.peek(sim.heap)
   DataStructures.dequeue!(sim.heap)
   sim.time = key.time
-  bev.state = triggered
+  bev.state = processed
   for callback in bev.callbacks
     callback()
   end
@@ -43,14 +44,18 @@ function now(sim::Simulation)
   sim.time
 end
 
+function now(ev::AbstractEvent)
+  return now(environment(ev))
+end
+
 function active_process(sim::Simulation) :: AbstractProcess
-  get(sim.active_proc)
+  sim.active_proc
 end
 
 function reset_active_process(sim::Simulation)
-  sim.active_proc = Nullable{AbstractProcess}()
+  sim.active_proc = nothing
 end
 
 function set_active_process(sim::Simulation, proc::AbstractProcess)
-  sim.active_proc = Nullable(proc)
+  sim.active_proc = proc
 end

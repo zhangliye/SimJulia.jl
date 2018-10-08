@@ -1,30 +1,25 @@
 using Documenter
+using ResumableFunctions
 using SimJulia
 
 makedocs(
-  modules = [SimJulia],
-  clean   = true,
   format   = :html,
-  sitename = "SimJulia.jl",
+  sitename = "SimJulia",
+  authors = "Ben Lauwens",
   pages    = [
     "Home" => "index.md",
-    "Intro" => [
-      "10_min/1_installation.md",
-      "10_min/2_basic_concepts.md",
-      "10_min/3_process_interaction.md",
-    ],
-    "Manual" => "topics.md",
-    "Examples" => [
-      "examples/1_bank_renege.md",
-    ],
-    "Library" => "api.md"
-    ]
-
+    "Tutorial" => "tutorial.md",
+    "Topical Guides" => ["Basics" => "guides/basics.md",
+                         "Environments" => "guides/environments.md",
+                         "Events" => "guides/events.md",],
+    "Examples" => ["Ross" => "examples/ross.md",],
+    "API" => "api.md"
+  ]
 )
 
 deploydocs(
   repo = "github.com/BenLauwens/SimJulia.jl.git",
-  julia  = "0.5",
+  julia  = "1.0",
   osname = "linux",
   target = "build",
   deps = nothing,

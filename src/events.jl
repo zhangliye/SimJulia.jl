@@ -6,10 +6,8 @@ struct Event <: AbstractEvent
 end
 
 function succeed(ev::Event; priority::Int8=zero(Int8), value::Any=nothing) :: Event
-  sta = state(ev)
-  (sta == scheduled || sta == triggered) && throw(EventNotIdle(ev))
+  state(ev) != idle && throw(EventNotIdle(ev))
   schedule(ev; priority=priority, value=value)
-  ev
 end
 
 function fail(ev::Event, exc::Exception; priority::Int8=zero(Int8)) :: Event
@@ -18,13 +16,15 @@ end
 
 struct Timeout <: AbstractEvent
   bev :: BaseEvent
-  function Timeout(env::Environment, delay::Number=0; priority::Int8=zero(Int8), value::Any=nothing)
-    ev = new(BaseEvent(env))
-    schedule(ev, delay; priority=priority, value=value)
-    ev
+  function Timeout(env::Environment)
+    new(BaseEvent(env))
   end
 end
 
+function timeout(env::Environment, delay::Number=0; priority::Int8=zero(Int8), value::Any=nothing)
+  schedule(Timeout(env), delay; priority=priority, value=value)
+end
+
 function run(env::Environment, until::Number=typemax(Float64))
-  run(env, Timeout(env, until-now(env)))
+  run(env, timeout(env, until-now(env)))
 end

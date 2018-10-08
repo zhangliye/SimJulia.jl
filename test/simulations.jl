@@ -1,9 +1,9 @@
 using SimJulia
 
-type TestException <: Exception end
+struct TestException <: Exception end
 
 function test_callback(ev::AbstractEvent)
-  println("Hi I timed out at $(now(environment(ev)))")
+  println("Hi I timed out at $(now(ev))")
 end
 
 function test_callback_exception(ev::Event)
@@ -11,8 +11,8 @@ function test_callback_exception(ev::Event)
 end
 
 sim = Simulation()
-@callback test_callback(Timeout(sim, 1))
-@callback test_callback(Timeout(sim, 3))
+@callback test_callback(timeout(sim, 1))
+@callback test_callback(timeout(sim, 3))
 run(sim, 2)
 sim = Simulation()
 try
@@ -21,17 +21,17 @@ catch exc
   println("$exc has been thrown!")
 end
 sim = Simulation(3)
-start = now(sim)
-@callback test_callback(Timeout(sim, 1))
-run(sim, start+2)
-println(now(sim)-start)
+start_time = now(sim)
+@callback test_callback(timeout(sim, 1))
+run(sim, start_time+2)
+println(now(sim)-start_time)
 sim = Simulation()
-start = now(sim)
+start_time = now(sim)
 ev = Event(sim)
 @callback test_callback_exception(ev)
 succeed(ev)
 try
   run(sim)
 catch exc
-  println("$exc has been thrown after $(now(sim)-start)!")
+  println("$exc has been thrown after $(now(sim)-start_time)!")
 end

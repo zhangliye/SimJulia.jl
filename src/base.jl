@@ -1,11 +1,9 @@
 abstract type AbstractEvent end
 abstract type Environment end
 
-## add new comments by LY
+@enum EVENT_STATE idle=0 scheduled=1 processed=2
 
-@enum EVENT_STATE idle=0 scheduled=1 triggered=2
-
-struct EventTriggered <: Exception
+struct EventProcessed <: Exception
   ev :: AbstractEvent
 end
 
@@ -28,6 +26,14 @@ function show(io::IO, ev::AbstractEvent)
   print(io, "$(typeof(ev)) $(ev.bev.id)")
 end
 
+function show(io::IO, env::Environment)
+  if env.active_proc == nothing
+    print(io, "$(typeof(env)) time: $(now(env)) active_process: nothing")
+  else
+    print(io, "$(typeof(env)) time: $(now(env)) active_process: $(active_proc)")
+  end
+end
+
 function environment(ev::AbstractEvent) :: Environment
   ev.bev.env
 end
@@ -41,7 +47,7 @@ function state(ev::AbstractEvent) :: EVENT_STATE
 end
 
 function append_callback(func::Function, ev::AbstractEvent, args::Any...) :: Function
-  ev.bev.state == triggered && throw(EventTriggered(ev))
+  ev.bev.state == processed && throw(EventProcessed(ev))
   cb = ()->func(ev, args...)
   push!(ev.bev.callbacks, cb)
   cb
@@ -49,9 +55,7 @@ end
 
 macro callback(expr::Expr)
   expr.head != :call && error("Expression is not a function call!")
-  func = esc(expr.args[1])
-  args = [esc(expr.args[n]) for n in 2:length(expr.args)]
-  :(append_callback($(func), $(args...)))
+  esc(:(SimJulia.append_callback($(expr.args...))))
 end
 
 function remove_callback(cb::Function, ev::AbstractEvent)
@@ -60,15 +64,13 @@ function remove_callback(cb::Function, ev::AbstractEvent)
 end
 
 function schedule(ev::AbstractEvent, delay::Number=zero(Float64); priority::Int8=zero(Int8), value::Any=nothing)
+  state(ev) == processed && throw(EventProcessed(ev))
   env = environment(ev)
   bev = ev.bev
   bev.value = value
   env.heap[bev] = EventKey(now(env) + delay, priority, env.sid+=one(UInt))
   bev.state = scheduled
-end
-
-function reset(ev::AbstractEvent)
-  ev.bev.state = idle
+  ev
 end
 
 struct StopSimulation <: Exception

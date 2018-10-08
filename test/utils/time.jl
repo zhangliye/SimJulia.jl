@@ -1,9 +1,9 @@
 using SimJulia
-using Base.Dates
+using Dates
 
-function datetimetest(sim::Simulation)
+@resumable function datetimetest(sim::Simulation)
   println(nowDatetime(sim))
-  yield(Timeout(sim, Day(2)))
+  @yield timeout(sim, Day(2))
   println(nowDatetime(sim))
 end
 

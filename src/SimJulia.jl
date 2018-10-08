@@ -1,56 +1,33 @@
-isdefined(Base, :__precompile__) && __precompile__()
-
 """
-Main module for SimJulia.jl – a combined continuous time / discrete event process oriented simulation framework for Julia.
+Main module for SimJulia.jl – a discrete event process oriented simulation framework for Julia.
 """
 module SimJulia
 
   using DataStructures
-  using Base.Dates
-  using TaylorSeries
+  using Dates
+  using ResumableFunctions
 
-  import Base.run, Base.now, Base.isless, Base.show, Base.interrupt, Base.yield
+  import Base.run, Base.isless, Base.show, Base.yield, Base.get
   import Base.(&), Base.(|)
-  import TaylorSeries.integrate, TaylorSeries.evaluate
+  import Dates.now
 
-  export AbstractEvent
-  export value, state, environment
-  export Event, Timeout
-  export succeed, fail, @callback, remove_callback
-  export Operator
-  export (&), (|)
-  export Simulation
-  export run, now, active_process
+  export AbstractEvent, Environment, value, state, environment
+  export Event, succeed, fail, @callback, remove_callback
+  export timeout
+  export Operator, (&), (|)
+  export @resumable, @yield
+  export AbstractProcess, Simulation, run, now, active_process, StopSimulation
+  export Process, @process, interrupt
+  export Container, Resource, Store, put, get, request, release, cancel
   export nowDatetime
-  export Process, @process
-  export yield, interrupt
-  export FiniteStateMachine, @stateful, @yield
-  export Coroutine, @coroutine
-  export Container, Resource, Store
-  export Put, Get, Request, Release, cancel, capacity, request, @request
-  export Model, Continuous, Variable
-  export @model, @continuous
-  export evaluate
-  export QSS
-  export non_stiff, stiff
 
   include("base.jl")
   include("events.jl")
-  include("utils/operators.jl")
+  include("operators.jl")
   include("simulations.jl")
-  include("utils/time.jl")
-  include("tasks/base.jl")
   include("processes.jl")
-  include("finitestatemachines/utils.jl")
-  include("finitestatemachines/transforms.jl")
-  include("finitestatemachines/macros.jl")
-  include("coroutines.jl")
   include("resources/base.jl")
   include("resources/containers.jl")
   include("resources/stores.jl")
-  include("odes/base.jl")
-  include("odes/macros.jl")
-  include("continuous.jl")
-  include("odes/roots.jl")
-  include("odes/QSS.jl")
+  include("utils/time.jl")
 end

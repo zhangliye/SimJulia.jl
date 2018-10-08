@@ -1,51 +1,65 @@
-type Process <: AbstractProcess
+struct Initialize <: AbstractEvent
   bev :: BaseEvent
-  task :: Task
+  function Initialize(env::Environment)
+    new(BaseEvent(env))
+  end
+end
+
+mutable struct Process <: DiscreteProcess
+  bev :: BaseEvent
+  fsmi :: ResumableFunctions.FiniteStateMachineIterator
   target :: AbstractEvent
   resume :: Function
   function Process(func::Function, env::Environment, args::Any...)
     proc = new()
     proc.bev = BaseEvent(env)
-    proc.task = @task func(env, args...)
-    proc.target = Timeout(env)
+    proc.fsmi = func(env, args...)
+    proc.target = schedule(Initialize(env))
     proc.resume = @callback execute(proc.target, proc)
-    return proc
+    proc
   end
 end
 
 macro process(expr)
   expr.head != :call && error("Expression is not a function call!")
-  func = esc(expr.args[1])
-  args = [esc(expr.args[n]) for n in 2:length(expr.args)]
-  :(Process($(func), $(args...)))
-end
-
-function yield(target::AbstractEvent)
-  env = environment(target)
-  proc = active_process(env)
-  proc.target = state(target) == triggered ? Timeout(env; value=value(target)) : target
-  proc.resume = @callback execute(proc.target, proc)
-  ret = SimJulia.produce(nothing)
-  isa(ret, Exception) && throw(ret)
-  return ret
+  esc(:(Process($(expr.args...))))
 end
 
 function execute(ev::AbstractEvent, proc::Process)
   try
     env = environment(ev)
     set_active_process(env, proc)
-    ret = SimJulia.consume(proc.task, value(ev))
+    target = proc.fsmi(value(ev))
     reset_active_process(env)
-    istaskdone(proc.task) && schedule(proc; value=ret)
+    if proc.fsmi._state == 0xff
+      schedule(proc; value=target)
+    else
+      proc.target = state(target) == processed ? timeout(env; value=value(target)) : target
+      proc.resume = @callback execute(proc.target, proc)
+    end
   catch exc
     rethrow(exc)
   end
 end
 
-function interrupt(proc::Process, cause::Any=nothing)
-  if !istaskdone(proc.task)
-    remove_callback(proc.resume, proc.target)
-    proc.target = Timeout(environment(proc); priority=typemax(Int8), value=InterruptException(proc, cause))
-    proc.resume = @callback execute(proc.target, proc)
+struct Interrupt <: AbstractEvent
+  bev :: BaseEvent
+  function Interrupt(env::Environment)
+    new(BaseEvent(env))
   end
+end
+
+function execute_interrupt(ev::Interrupt, proc::Process)
+  remove_callback(proc.resume, proc.target)
+  execute(ev, proc)
+end
+
+function interrupt(proc::Process, cause::Any=nothing)
+  env = environment(proc)
+  if proc.fsmi._state != 0xff
+    proc.target isa Initialize && schedule(proc.target; priority=typemax(Int8))
+    target = schedule(Interrupt(env); priority=typemax(Int8), value=InterruptException(active_process(env), cause))
+    @callback execute_interrupt(target, proc)
+  end
+  timeout(env; priority=typemax(Int8))
 end
